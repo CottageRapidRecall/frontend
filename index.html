@@ -90,7 +90,7 @@
         form.append("recall", fileInput.files[0]);
         form.append("uid", user.uid);
 
-        const resp = await fetch("http://localhost:8080/v1", {
+        const resp = await fetch("http://rapidrecall-production.up.railway.app/v1", {
           method: "POST",
           body: form
           // headers: { Authorization: `Bearer ${idToken}` } // if you verify tokens server-side
