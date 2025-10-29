@@ -83,17 +83,15 @@
       resultCard.style.display = 'none';
 
       try {
-        // If you later verify ID tokens server-side, include it in headers.
-        // const idToken = await user.getIdToken();
-
+        // Verify ID tokens server-side
+        const idToken = await user.getIdToken();
         const form = new FormData();
         form.append("recall", fileInput.files[0]);
-        form.append("uid", user.uid);
 
         const resp = await fetch("https://rapidrecall-production.up.railway.app/v1", {
           method: "POST",
-          body: form
-          // headers: { Authorization: `Bearer ${idToken}` } // if you verify tokens server-side
+          body: form,
+          headers: { Authorization: `Bearer ${idToken}` } 
         });
 
         const data = await resp.json();
