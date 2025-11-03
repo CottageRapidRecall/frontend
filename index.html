@@ -1,114 +1,13 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>RecallMD</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 16px; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    button { padding: 8px 12px; }
-    .box { border: 1px solid #ccc; padding: 12px; border-radius: 8px; margin-top: 12px; }
-    pre { white-space: pre-wrap; word-wrap: break-word; }
-  </style>
-</head>
-<body>
-  <header>
-    <strong>RecallMD</strong>
-    <div>
-      <button id="signin">Sign in with Google</button>
-      <button id="signout" style="display:none">Sign out</button>
-    </div>
-  </header>
-
-  <div class="box">
-    <h3>Upload Recall (Image or PDF)</h3>
-    <input id="file" type="file" accept="image/*,.pdf" />
-    <div style="margin-top:8px;">
-      <button id="submit" disabled>Submit</button>
-    </div>
-    <div id="status" style="margin-top:8px;"></div>
-  </div>
-
-  <div id="result" class="box" style="display:none;">
-    <h3>Result</h3>
-    <pre id="json"></pre>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAphIzwHuLG_LqE7nv5yuHkwpVLTxQa7AQ",
-      authDomain: "recallmd-83caf.firebaseapp.com",
-      projectId: "recallmd-83caf",
-      storageBucket: "recallmd-83caf.firebasestorage.app",
-      messagingSenderId: "218440428095",
-      appId: "1:218440428095:web:1b80fb8ed8279ed951a68a",
-      measurementId: "G-L4PPFQTLX0"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    const signinBtn = document.getElementById('signin');
-    const signoutBtn = document.getElementById('signout');
-    const submitBtn = document.getElementById('submit');
-    const fileInput = document.getElementById('file');
-    const statusEl = document.getElementById('status');
-    const resultCard = document.getElementById('result');
-    const jsonPre = document.getElementById('json');
-
-    signinBtn.onclick = () => signInWithPopup(auth, provider);
-    signoutBtn.onclick = () => signOut(auth);
-
-    onAuthStateChanged(auth, (user) => {
-      const signedIn = !!user;
-      signinBtn.style.display = signedIn ? 'none' : 'inline-block';
-      signoutBtn.style.display = signedIn ? 'inline-block' : 'none';
-      submitBtn.disabled = !signedIn;
-      statusEl.textContent = signedIn ? `Signed in as ${user.displayName || user.email}` : 'Please sign in.';
-      if (!signedIn) resultCard.style.display = 'none';
-    });
-
-    submitBtn.onclick = async () => {
-      const user = auth.currentUser;
-      if (!user) { alert("Sign in first."); return; }
-      if (!fileInput.files || fileInput.files.length === 0) { alert("Select a file."); return; }
-
-      submitBtn.disabled = true;
-      statusEl.textContent = "Uploading…";
-      resultCard.style.display = 'none';
-
-      try {
-        // If you later verify ID tokens server-side, include it in headers.
-        // const idToken = await user.getIdToken();
-
-        const form = new FormData();
-        form.append("recall", fileInput.files[0]);
-        form.append("uid", user.uid);
-
-        const resp = await fetch("https://rapidrecall-production.up.railway.app/v1", {
-          method: "POST",
-          body: form
-          // headers: { Authorization: `Bearer ${idToken}` } // if you verify tokens server-side
-        });
-
-        const data = await resp.json();
-        if (!resp.ok || !data.ok) throw new Error(data.error || `HTTP ${resp.status}`);
-
-        jsonPre.textContent = JSON.stringify(data, null, 2);
-        resultCard.style.display = 'block';
-        statusEl.textContent = "Done.";
-      } catch (err) {
-        console.error(err);
-        statusEl.textContent = `Error: ${err.message}`;
-      } finally {
-        submitBtn.disabled = false;
-      }
-    };
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RapidRecall - Dashboard</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
