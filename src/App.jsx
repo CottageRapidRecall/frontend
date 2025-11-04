@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './lib/firebase';
 import { Sidebar } from './components/Sidebar';
@@ -7,9 +7,26 @@ import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
 // import { Documents } from './pages/Documents';
 
+// Helper function to get page title based on route
+function getPageTitle(pathname, user) {
+  if (!user) {
+    return 'RapidRecall - Login';
+  }
+
+  switch (pathname) {
+    case '/':
+      return 'RapidRecall - Dashboard';
+    case '/documents':
+      return 'RapidRecall - Documents';
+    default:
+      return 'RapidRecall';
+  }
+}
+
 function AppContent() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -19,6 +36,13 @@ function AppContent() {
 
     return () => unsubscribe();
   }, []);
+
+  // Update page title based on route and authentication state
+  useEffect(() => {
+    if (!loading) {
+      document.title = getPageTitle(location.pathname, user);
+    }
+  }, [user, loading, location.pathname]);
 
   const handleSignOut = async () => {
     try {
