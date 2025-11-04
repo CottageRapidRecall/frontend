@@ -4,10 +4,10 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './lib/firebase';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
+import { Login } from './pages/Login';
 // import { Documents } from './pages/Documents';
-// import { Login } from './pages/Login';
 
-function App() {
+function AppContent() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -39,22 +39,29 @@ function App() {
     );
   }
 
-  // if (!user) {
-  //   return <Login />;
-  // }
+  // Show login page if user is not authenticated
+  if (!user) {
+    return <Login />;
+  }
 
   return (
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar user={user} onSignOut={handleSignOut} />
+      <main className="flex-1 overflow-y-auto">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          {/* <Route path="/documents" element={<Documents user={user} />} /> */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+function App() {
+  return (
     <BrowserRouter>
-      <div className="flex h-screen bg-gray-50">
-        <Sidebar user={user} onSignOut={handleSignOut} />
-        <main className="flex-1 overflow-y-auto">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            {/* <Route path="/documents" element={<Documents user={user} />} /> */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
+      <AppContent />
     </BrowserRouter>
   );
 }
