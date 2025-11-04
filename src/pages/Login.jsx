@@ -75,7 +75,15 @@ export function Login() {
               RapidRecall
             </h1>
             <p className="text-gray-600">
-              Recall your information faster than ever
+              TODO: Add description here
+            </p>
+          </div>
+
+          <div className="bg-blue-50 rounded-lg p-4 mb-6">
+            <p className="text-sm text-gray-700">
+              <span className="font-semibold">Welcome to RapidRecall!</span>
+              <br />
+              Sign in with your Google account to get started. We use Google's secure authentication to keep your data safe.
             </p>
           </div>
 
@@ -114,23 +122,6 @@ export function Login() {
               <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
-
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">or</span>
-            </div>
-          </div>
-
-          <div className="bg-blue-50 rounded-lg p-4 mb-4">
-            <p className="text-sm text-gray-700">
-              <span className="font-semibold">Welcome to RapidRecall!</span>
-              <br />
-              Sign in with your Google account to get started. We use Google's secure authentication to keep your data safe.
-            </p>
-          </div>
 
           <p className="text-xs text-center text-gray-500 mt-6">
             By signing in, you agree to our Terms of Service and Privacy Policy
