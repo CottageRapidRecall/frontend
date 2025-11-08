@@ -10,16 +10,16 @@ import { Login } from './pages/Login';
 // Helper function to get page title based on route
 function getPageTitle(pathname, user) {
   if (!user) {
-    return 'RapidRecall - Login';
+    return 'RapidMD - Login';
   }
 
   switch (pathname) {
     case '/':
-      return 'RapidRecall - Dashboard';
+      return 'RapidMD - Dashboard';
     case '/documents':
-      return 'RapidRecall - Documents';
+      return 'RapidMD - Documents';
     default:
-      return 'RapidRecall';
+      return 'RapidMD';
   }
 }
 

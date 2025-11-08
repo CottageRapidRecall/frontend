@@ -46,7 +46,7 @@ export function Login() {
       localStorage.setItem('idToken', idToken);
       localStorage.setItem('uid', user.uid);
       
-      // User is signed in and verified, navigate to dashboard
+      // User is signed in and verified -> navigate to dashboard
       navigate('/');
     } catch (error) {
       console.error('Error signing in:', error);
@@ -72,7 +72,7 @@ export function Login() {
         <div className="bg-white rounded-lg shadow-lg p-8 md:p-10">
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-              RapidRecall
+              RapidMD
             </h1>
             <p className="text-gray-600">
               TODO: Add description here
@@ -81,7 +81,7 @@ export function Login() {
 
           <div className="bg-blue-50 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-700">
-              <span className="font-semibold">Welcome to RapidRecall!</span>
+              <span className="font-semibold">Welcome to RapidMD!</span>
               <br />
               Sign in with your Google account to get started. We use Google's secure authentication to keep your data safe.
             </p>
