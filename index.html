@@ -61,8 +61,48 @@
     const resultCard = document.getElementById('result');
     const jsonPre = document.getElementById('json');
 
-    signinBtn.onclick = () => signInWithPopup(auth, provider);
-    signoutBtn.onclick = () => signOut(auth);
+    const BACKEND_URL = "https://rapidrecall-production.up.railway.app/v1";
+    // const BACKEND_URL = "http://localhost:8080"; // Change back to production URL before merging into main
+
+    signinBtn.onclick = async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        const idToken = await user.getIdToken();
+
+        // Verify token with backend
+        statusEl.textContent = "Verifying with backend…";
+        const response = await fetch(`${BACKEND_URL}/auth/verify-token`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: idToken,
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || "Backend verification failed");
+        }
+
+        statusEl.textContent = `Signed in as ${user.displayName || user.email}`;
+        // Store token for later use
+        localStorage.setItem('idToken', idToken);
+        localStorage.setItem('uid', user.uid);
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = `Sign-in error: ${err.message}`;
+      }
+    };
+
+    signoutBtn.onclick = () => {
+      signOut(auth);
+      localStorage.removeItem('idToken');
+      localStorage.removeItem('uid');
+    };
 
     onAuthStateChanged(auth, (user) => {
       const signedIn = !!user;
@@ -83,17 +123,17 @@
       resultCard.style.display = 'none';
 
       try {
-        // If you later verify ID tokens server-side, include it in headers.
-        // const idToken = await user.getIdToken();
+        const idToken = await user.getIdToken();
 
         const form = new FormData();
         form.append("recall", fileInput.files[0]);
-        form.append("uid", user.uid);
 
-        const resp = await fetch("https://rapidrecall-production.up.railway.app/v1", {
+        const resp = await fetch(`${BACKEND_URL}/v1`, {
           method: "POST",
+          headers: { 
+            "Authorization": `Bearer ${idToken}`
+          },
           body: form
-          // headers: { Authorization: `Bearer ${idToken}` } // if you verify tokens server-side
         });
 
         const data = await resp.json();
