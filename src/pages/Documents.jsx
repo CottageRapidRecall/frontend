@@ -4,15 +4,25 @@ import { FileText, Upload } from 'lucide-react';
 
 export function Documents({ user }) {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedFile(file);
+
+      // Create preview URL
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
   };
 
   const handleRemoveFile = () => {
+    // Clean up preview URL to prevent memory leaks
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
     setSelectedFile(null);
   };
 
@@ -80,15 +90,23 @@ export function Documents({ user }) {
           </Card>
         </div>
 
-        {/* Preview/Results Section (placeholder) */}
+        {/* Preview/Results Section */}
         <div className="space-y-6">
           <Card>
             <CardContent className="py-12">
-              <div className="text-center text-gray-500">
-                <FileText className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                <p className="font-medium">No document selected</p>
-                <p className="text-sm mt-1">Upload a document to see preview and results</p>
-              </div>
+              {previewUrl ? (
+                <div className="text-center text-gray-500">
+                  <FileText className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                  <p className="font-medium">Preview URL generated</p>
+                  <p className="text-sm mt-1 text-green-600">Ready to display preview</p>
+                </div>
+              ) : (
+                <div className="text-center text-gray-500">
+                  <FileText className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                  <p className="font-medium">No document selected</p>
+                  <p className="text-sm mt-1">Upload a document to see preview and results</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
