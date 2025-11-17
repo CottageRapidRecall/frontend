@@ -5,7 +5,7 @@ import { auth } from './lib/firebase';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
-// import { Documents } from './pages/Documents';
+import { Documents } from './pages/Documents';
 
 // Helper function to get page title based on route
 function getPageTitle(pathname, user) {
@@ -74,7 +74,7 @@ function AppContent() {
       <main className="flex-1 overflow-y-auto">
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          {/* <Route path="/documents" element={<Documents user={user} />} /> */}
+          <Route path="/documents" element={<Documents user={user} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
