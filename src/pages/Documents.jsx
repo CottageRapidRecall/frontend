@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
-import { FileText, Upload } from 'lucide-react';
+import { Button } from '../components/Button';
+import { FileText, Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { auth } from '../lib/firebase';
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://rapidrecall-production.up.railway.app";
 
 export function Documents({ user }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [status, setStatus] = useState('');
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -23,6 +29,50 @@ export function Documents({ user }) {
       setPreviewUrl(null);
     }
     setSelectedFile(null);
+    setStatus('');
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedFile) {
+      alert('Please select a file first.');
+      return;
+    }
+
+    if (!user) {
+      alert('You must be signed in to upload files.');
+      return;
+    }
+
+    setUploading(true);
+    setStatus('Uploading...');
+
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+
+      const formData = new FormData();
+      formData.append('recall', selectedFile);
+
+      const response = await fetch(`${BACKEND_URL}/v1`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      setStatus('Processing complete!');
+    } catch (error) {
+      console.error('Upload error:', error);
+      setStatus(`Error: ${error.message}`);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -82,6 +132,35 @@ export function Documents({ user }) {
                     >
                       Remove
                     </button>
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!selectedFile || uploading}
+                  className="w-full"
+                >
+                  {uploading ? 'Processing...' : 'Submit Document'}
+                </Button>
+
+                {/* Status Message */}
+                {status && (
+                  <div className={`flex items-center p-4 rounded-lg ${
+                    status.startsWith('Error')
+                      ? 'bg-red-50 text-red-700'
+                      : status.includes('complete')
+                      ? 'bg-green-50 text-green-700'
+                      : 'bg-blue-50 text-blue-700'
+                  }`}>
+                    {status.startsWith('Error') ? (
+                      <AlertCircle className="h-5 w-5 mr-3" />
+                    ) : status.includes('complete') ? (
+                      <CheckCircle className="h-5 w-5 mr-3" />
+                    ) : (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-3"></div>
+                    )}
+                    <span className="text-sm font-medium">{status}</span>
                   </div>
                 )}
               </div>
