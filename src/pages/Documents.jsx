@@ -11,6 +11,7 @@ export function Documents({ user }) {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState('');
+  const [result, setResult] = useState(null);
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -19,6 +20,9 @@ export function Documents({ user }) {
 
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+
+      // Clear previous result when selecting a new file
+      setResult(null);
     }
   };
 
@@ -30,6 +34,7 @@ export function Documents({ user }) {
     }
     setSelectedFile(null);
     setStatus('');
+    setResult(null);
   };
 
   const handleSubmit = async () => {
@@ -66,6 +71,7 @@ export function Documents({ user }) {
         throw new Error(data.error || `HTTP ${response.status}`);
       }
 
+      setResult(data);
       setStatus('Processing complete!');
     } catch (error) {
       console.error('Upload error:', error);
@@ -200,6 +206,22 @@ export function Documents({ user }) {
                   <FileText className="h-16 w-16 mx-auto mb-4 text-gray-400" />
                   <p className="font-medium">No document selected</p>
                   <p className="text-sm mt-1">Upload a document to see preview and results</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Processing Results */}
+          {result && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Processing Results</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <pre className="text-xs whitespace-pre-wrap break-words overflow-x-auto">
+                    {JSON.stringify(result, null, 2)}
+                  </pre>
                 </div>
               </CardContent>
             </Card>
