@@ -11,7 +11,6 @@ export function Documents({ user }) {
     if (file) {
       setSelectedFile(file);
 
-      // Create preview URL
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
@@ -92,23 +91,40 @@ export function Documents({ user }) {
 
         {/* Preview/Results Section */}
         <div className="space-y-6">
-          <Card>
-            <CardContent className="py-12">
-              {previewUrl ? (
-                <div className="text-center text-gray-500">
-                  <FileText className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                  <p className="font-medium">Preview URL generated</p>
-                  <p className="text-sm mt-1 text-green-600">Ready to display preview</p>
+          {previewUrl ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Document Preview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-gray-100 rounded-lg p-4">
+                  {selectedFile?.type.startsWith('image/') ? (
+                    <img
+                      src={previewUrl}
+                      alt="Preview"
+                      className="w-full h-auto rounded"
+                    />
+                  ) : selectedFile?.type === 'application/pdf' ? (
+                    <iframe
+                      src={previewUrl}
+                      className="w-full h-[600px] rounded"
+                      title="PDF Preview"
+                    />
+                  ) : null}
                 </div>
-              ) : (
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="py-12">
                 <div className="text-center text-gray-500">
                   <FileText className="h-16 w-16 mx-auto mb-4 text-gray-400" />
                   <p className="font-medium">No document selected</p>
                   <p className="text-sm mt-1">Upload a document to see preview and results</p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
