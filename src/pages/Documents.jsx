@@ -52,6 +52,29 @@ export function Documents({ user }) {
                   </label>
                   <p className="text-sm text-gray-500 mt-2">PDF or image files</p>
                 </div>
+
+                {/* Selected File Info */}
+                {selectedFile && (
+                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center">
+                      <FileText className="h-5 w-5 text-blue-600 mr-3" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {selectedFile.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleRemoveFile}
+                      className="text-sm text-red-600 hover:text-red-700 font-medium"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
