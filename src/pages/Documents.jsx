@@ -1,7 +1,21 @@
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
-import { FileText } from 'lucide-react';
+import { FileText, Upload } from 'lucide-react';
 
 export function Documents({ user }) {
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+  };
+
   return (
     <div className="p-8">
       {/* Page Header */}
@@ -12,15 +26,32 @@ export function Documents({ user }) {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Upload Section (placeholder) */}
+        {/* Upload Section */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Upload Recall Document</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12 text-gray-500">
-                <FileText className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+              <div className="space-y-4">
+                {/* File Input */}
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors">
+                  <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    <span className="text-blue-600 hover:text-blue-700 font-medium">
+                      Choose a file
+                    </span>
+                    <span className="text-gray-600"> or drag and drop</span>
+                    <input
+                      id="file-upload"
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="text-sm text-gray-500 mt-2">PDF or image files</p>
+                </div>
               </div>
             </CardContent>
           </Card>
