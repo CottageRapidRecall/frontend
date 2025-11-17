@@ -42,9 +42,10 @@ export function Login() {
 
       const data = await response.json();
       
-      // Store the token in localStorage for API requests
+      // Store the token and role in localStorage for API requests
       localStorage.setItem('idToken', idToken);
       localStorage.setItem('uid', user.uid);
+      localStorage.setItem('userRole', data.role || 'user');
       
       // User is signed in and verified -> navigate to dashboard
       navigate('/');
