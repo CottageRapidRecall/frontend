@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
 import { Search, UserCheck, UserX, Trash2 } from 'lucide-react';
+import { getFreshIdToken } from '../lib/tokenManager';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
 
@@ -19,7 +20,7 @@ export function AdminPanel() {
     setLoading(true);
     setError(null);
     try {
-      const idToken = localStorage.getItem('idToken');
+      const idToken = await getFreshIdToken();
       const response = await fetch(`${BACKEND_URL}/admin/users`, {
         method: 'GET',
         headers: {
@@ -44,7 +45,7 @@ export function AdminPanel() {
   const updateUserRole = async (uid, newRole) => {
     setActionLoading(uid);
     try {
-      const idToken = localStorage.getItem('idToken');
+      const idToken = await getFreshIdToken();
       const response = await fetch(`${BACKEND_URL}/admin/set-role`, {
         method: 'POST',
         headers: {

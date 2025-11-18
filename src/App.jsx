@@ -2,22 +2,22 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './lib/firebase';
+import { getFreshIdToken } from './lib/tokenManager';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
-import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminPanel } from './pages/AdminPanel';
 import { Login } from './pages/Login';
 // import { Documents } from './pages/Documents';
 
 // Helper function to get page title based on route
-function getPageTitle(pathname, user, userRole) {
+function getPageTitle(pathname, user) {
   if (!user) {
     return 'RapidMD - Login';
   }
 
   switch (pathname) {
     case '/':
-      return userRole === 'admin' ? 'RapidMD - Admin Dashboard' : 'RapidMD - Dashboard';
+      return 'RapidMD - Dashboard';
     case '/admin/users':
       return 'RapidMD - Manage Users';
     case '/documents':
@@ -36,21 +36,29 @@ function AppContent() {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+      if (user) {
+        // Refresh ID token to ensure it's valid
+        try {
+          const newToken = await user.getIdToken(true);
+          localStorage.setItem('idToken', newToken);
+        } catch (error) {
+          console.error('Error refreshing token:', error);
+        }
+      }
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  // Verify and refresh user role from backend when user is authenticated
+  // Verify user role from backend on login
   useEffect(() => {
     if (user && !loading) {
-      const refreshUserRole = async () => {
+      const verifyUserRole = async () => {
         try {
-          const idToken = localStorage.getItem('idToken');
-          if (!idToken) return;
+          const idToken = await getFreshIdToken();
 
           const response = await fetch(`${BACKEND_URL}/auth/verify-token`, {
             method: 'POST',
@@ -68,31 +76,27 @@ function AppContent() {
           if (response.ok) {
             const data = await response.json();
             const newRole = data.role || 'user';
-            
-            // Update localStorage and state if role changed
-            if (newRole !== userRole) {
-              localStorage.setItem('userRole', newRole);
-              setUserRole(newRole);
-            }
+            localStorage.setItem('userRole', newRole);
+            setUserRole(newRole);
+          } else if (response.status === 401) {
+            console.error('Token expired or invalid, user needs to re-login');
+            await signOut(auth);
           }
         } catch (error) {
-          console.error('Error refreshing user role:', error);
+          console.error('Error verifying user role:', error);
         }
       };
 
-      refreshUserRole();
-      // Refresh role every 30 seconds to catch any admin privilege changes
-      const interval = setInterval(refreshUserRole, 30000);
-      return () => clearInterval(interval);
+      verifyUserRole();
     }
   }, [user, loading]);
 
   // Update page title based on route and authentication state
   useEffect(() => {
     if (!loading) {
-      document.title = getPageTitle(location.pathname, user, userRole);
+      document.title = getPageTitle(location.pathname, user);
     }
-  }, [user, loading, location.pathname, userRole]);
+  }, [user, loading, location.pathname]);
 
   const handleSignOut = async () => {
     try {
@@ -122,20 +126,17 @@ function AppContent() {
     return <Login />;
   }
 
-  // Redirect to regular dashboard if user is on admin route but no longer has admin role
+  // Redirect to dashboard if non-admin tries to access admin panel
   if (location.pathname.startsWith('/admin') && userRole !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar user={user} onSignOut={handleSignOut} />
+      <Sidebar user={user} userRole={userRole} onSignOut={handleSignOut} />
       <main className="flex-1 overflow-y-auto">
         <Routes>
-          <Route 
-            path="/" 
-            element={userRole === 'admin' ? <AdminDashboard /> : <Dashboard />} 
-          />
+          <Route path="/" element={<Dashboard />} />
           <Route 
             path="/admin/users" 
             element={userRole === 'admin' ? <AdminPanel /> : <Navigate to="/" replace />} 
