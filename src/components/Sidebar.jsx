@@ -1,14 +1,24 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, LogOut, Users, Settings } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-const navigation = [
+const baseNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Documents', href: '/documents', icon: FileText },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-export function Sidebar({ user, onSignOut }) {
+const adminNavigation = [
+  { name: 'Manage Users', href: '/admin/users', icon: Users },
+];
+
+export function Sidebar({ user, userRole, onSignOut }) {
   const location = useLocation();
+  
+  // Combine navigation items based on user role
+  const navigation = userRole === 'admin' 
+    ? [...baseNavigation, ...adminNavigation]
+    : baseNavigation;
 
   return (
     <div className="flex flex-col h-screen w-64 bg-white border-r border-gray-200">
@@ -47,7 +57,9 @@ export function Sidebar({ user, onSignOut }) {
               <p className="text-sm font-medium text-gray-900 truncate">
                 {user.displayName || user.email}
               </p>
-              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              <p className="text-xs text-gray-500 truncate">
+                {userRole === 'admin' ? 'Admin' : 'User'}
+              </p>
             </div>
           </div>
           <button

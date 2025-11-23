@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './lib/firebase';
+import { getFreshIdToken } from './lib/tokenManager';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
+import { AdminPanel } from './pages/AdminPanel';
 import { Login } from './pages/Login';
 import { Documents } from './pages/Documents';
 
@@ -16,6 +18,8 @@ function getPageTitle(pathname, user) {
   switch (pathname) {
     case '/':
       return 'RapidMD - Dashboard';
+    case '/admin/users':
+      return 'RapidMD - Manage Users';
     case '/documents':
       return 'RapidMD - Documents';
     default:
@@ -26,16 +30,66 @@ function getPageTitle(pathname, user) {
 function AppContent() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || 'user');
   const location = useLocation();
 
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+      if (user) {
+        // Refresh ID token to ensure it's valid
+        try {
+          const newToken = await user.getIdToken(true);
+          localStorage.setItem('idToken', newToken);
+        } catch (error) {
+          console.error('Error refreshing token:', error);
+        }
+      }
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
+
+  // Verify user role from backend on login
+  useEffect(() => {
+    if (user && !loading) {
+      const verifyUserRole = async () => {
+        try {
+          const idToken = await getFreshIdToken();
+
+          const response = await fetch(`${BACKEND_URL}/auth/verify-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              token: idToken,
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const newRole = data.role || 'user';
+            localStorage.setItem('userRole', newRole);
+            setUserRole(newRole);
+          } else if (response.status === 401) {
+            console.error('Token expired or invalid, user needs to re-login');
+            await signOut(auth);
+          }
+        } catch (error) {
+          console.error('Error verifying user role:', error);
+        }
+      };
+
+      verifyUserRole();
+    }
+  }, [user, loading]);
 
   // Update page title based on route and authentication state
   useEffect(() => {
@@ -47,6 +101,10 @@ function AppContent() {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      // Clear user data from localStorage
+      localStorage.removeItem('idToken');
+      localStorage.removeItem('uid');
+      localStorage.removeItem('userRole');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -68,12 +126,21 @@ function AppContent() {
     return <Login />;
   }
 
+  // Redirect to dashboard if non-admin tries to access admin panel
+  if (location.pathname.startsWith('/admin') && userRole !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar user={user} onSignOut={handleSignOut} />
+      <Sidebar user={user} userRole={userRole} onSignOut={handleSignOut} />
       <main className="flex-1 overflow-y-auto">
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route 
+            path="/admin/users" 
+            element={userRole === 'admin' ? <AdminPanel /> : <Navigate to="/" replace />} 
+          />
           <Route path="/documents" element={<Documents user={user} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
