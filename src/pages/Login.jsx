@@ -3,7 +3,7 @@ import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 import { useNavigate } from 'react-router-dom';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+const BACKEND_URL = 'https://rapidrecall-production.up.railway.app' || 'http://localhost:8080';
 
 export function Login() {
   const navigate = useNavigate();

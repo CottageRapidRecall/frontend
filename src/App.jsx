@@ -7,7 +7,7 @@ import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { AdminPanel } from './pages/AdminPanel';
 import { Login } from './pages/Login';
-// import { Documents } from './pages/Documents';
+import { Documents } from './pages/Documents';
 
 // Helper function to get page title based on route
 function getPageTitle(pathname, user) {
@@ -141,7 +141,7 @@ function AppContent() {
             path="/admin/users" 
             element={userRole === 'admin' ? <AdminPanel /> : <Navigate to="/" replace />} 
           />
-          {/* <Route path="/documents" element={<Documents user={user} />} /> */}
+          <Route path="/documents" element={<Documents user={user} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
