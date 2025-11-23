@@ -14,7 +14,7 @@ export function Dashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">My Recalls</p>
+                <p className="text-sm font-medium text-gray-600">Total Recalls</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">0</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
