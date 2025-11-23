@@ -68,7 +68,7 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-cyan-200 to-green-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-white p-4">
       {/* Main Container - White Rounded Box */}
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[550px]">
         {/* Left Panel - Form */}
@@ -140,13 +140,13 @@ export function Login() {
         </div>
 
         {/* Right Panel - Decorative Image (hidden on mobile) */}
-        <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-start relative p-8 py-20 bg-blue-200 opacity-90">
+        <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-start relative p-8 py-20 bg-gradient-to-br from-blue-300 via-cyan-200 to-green-100 opacity-90">
           <div className="w-full">
-            <h1 className="text-3xl justify-center md:text-4xl font-bold text-white mb-3">
-              Welcome to RapidMD!
+            <h1 className="text-3xl justify-center md:text-4xl font-bold text-black mb-3">
+              Welcome to RecallMD!
             </h1>
-            <p className="text-gray-700 text-sm md:text-base">
-              RapidMD automates medical device recall detection and response, ensuring your organization can identify affected products quickly and take action with confidence.
+            <p className="text-gray-700 text-sm md:text-xl">
+              Medical device recalls in minutes.
             </p>
           </div>
           
