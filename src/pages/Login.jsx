@@ -42,7 +42,6 @@ export function Login() {
 
       const data = await response.json();
       
-      // Store the token and role in localStorage for API requests
       localStorage.setItem('idToken', idToken);
       localStorage.setItem('uid', user.uid);
       localStorage.setItem('userRole', data.role || 'user');
@@ -114,7 +113,6 @@ export function Login() {
               {loading ? 'Signing in...' : 'Continue with Google'}
             </button>
 
-            {/* Placeholder Buttons */}
             <button
               disabled={loading}
               className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-3"
@@ -139,7 +137,7 @@ export function Login() {
           </div>
         </div>
 
-        {/* Right Panel - Decorative Image (hidden on mobile) */}
+        {/* Right Panel */}
         <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-start relative p-8 py-20 bg-gradient-to-br from-blue-300 via-cyan-200 to-green-100 opacity-90">
           <div className="w-full">
             <h1 className="text-3xl justify-center md:text-4xl font-bold text-black mb-3">
