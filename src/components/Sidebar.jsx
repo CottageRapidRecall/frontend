@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, LogOut, Users, Settings } from 'lucide-react';
+import { LayoutDashboard, FileText, LogOut, Users, Settings, Database } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const baseNavigation = [
@@ -10,6 +10,7 @@ const baseNavigation = [
 
 const adminNavigation = [
   { name: 'Manage Users', href: '/admin/users', icon: Users },
+  { name: 'Manage Recalls', href: '/admin/recalls', icon: Database },
 ];
 
 export function Sidebar({ user, userRole, onSignOut }) {
