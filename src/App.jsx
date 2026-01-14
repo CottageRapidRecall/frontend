@@ -6,6 +6,7 @@ import { getFreshIdToken } from './lib/tokenManager';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { AdminPanel } from './pages/AdminPanel';
+import { RecallsDatabase } from './pages/RecallsDatabase';
 import { Login } from './pages/Login';
 import { Documents } from './pages/Documents';
 
@@ -20,6 +21,8 @@ function getPageTitle(pathname, user) {
       return 'RapidMD - Dashboard';
     case '/admin/users':
       return 'RapidMD - Manage Users';
+    case '/admin/recalls':
+      return 'RapidMD - Manage Recalls';
     case '/documents':
       return 'RapidMD - Documents';
     default:
@@ -140,6 +143,10 @@ function AppContent() {
           <Route 
             path="/admin/users" 
             element={userRole === 'admin' ? <AdminPanel /> : <Navigate to="/" replace />} 
+          />
+          <Route 
+            path="/admin/recalls" 
+            element={userRole === 'admin' ? <RecallsDatabase /> : <Navigate to="/" replace />} 
           />
           <Route path="/documents" element={<Documents user={user} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
