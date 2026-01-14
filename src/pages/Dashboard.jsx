@@ -1,5 +1,6 @@
+import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
-import { Activity, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { Activity, FileText, AlertCircle, CheckCircle, Upload } from 'lucide-react';
 
 export function Dashboard() {
   return (
@@ -76,6 +77,13 @@ export function Dashboard() {
             <FileText className="h-12 w-12 mx-auto mb-3 text-gray-400" />
             <p>No recalls uploaded yet</p>
             <p className="text-sm mt-1">Upload your first recall document to get started</p>
+            <Link
+              to="/documents"
+              className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Upload className="h-4 w-4" />
+              Upload New Recall
+            </Link>
           </div>
         </CardContent>
       </Card>
