@@ -1,6 +1,6 @@
 import { useState, useEffect, Fragment } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
-import { Search, Edit2, ChevronDown } from 'lucide-react';
+import { Search, Edit2, ChevronDown, ChevronUp } from 'lucide-react';
 import { getFreshIdToken } from '../lib/tokenManager';
 
 const BACKEND_URL =
@@ -23,6 +23,9 @@ export function RecallsDatabase() {
   const [editingClassification, setEditingClassification] = useState('');
   const [updateLoading, setUpdateLoading] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [sortColumn, setSortColumn] = useState('created_at');
+  const [sortDirection, setSortDirection] = useState('desc');
+  const [showDuplicates, setShowDuplicates] = useState(false);
 
   useEffect(() => {
     fetchRecalls();
@@ -114,6 +117,65 @@ export function RecallsDatabase() {
     );
   });
 
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedAndFilteredRecalls = [...filteredRecalls].sort((a, b) => {
+    let aValue, bValue;
+
+    if (sortColumn === 'created_at') {
+      aValue = new Date(a.created_at || 0).getTime();
+      bValue = new Date(b.created_at || 0).getTime();
+    } else if (sortColumn === 'fda_class') {
+      aValue = a.result?.fda_class || 'Pending Review';
+      bValue = b.result?.fda_class || 'Pending Review';
+    }
+
+    if (aValue === undefined || bValue === undefined) return 0;
+
+    let primarySort = 0;
+    if (typeof aValue === 'string') {
+      primarySort = sortDirection === 'asc'
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    } else {
+      primarySort = sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+
+    // If primary sort is equal and we're sorting by classification, sort by date ascending
+    if (primarySort === 0 && sortColumn === 'fda_class') {
+      const aDate = new Date(a.created_at || 0).getTime();
+      const bDate = new Date(b.created_at || 0).getTime();
+      return aDate - bDate; // Always ascending by date
+    }
+
+    return primarySort;
+  });
+
+  const SortHeader = ({ column, label }) => (
+    <th
+      onClick={() => handleSort(column)}
+      className="text-left px-4 py-3 cursor-pointer hover:bg-gray-100"
+    >
+      <div className="flex items-center gap-2">
+        {label}
+        {sortColumn === column && (
+          sortDirection === 'asc' ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )
+        )}
+      </div>
+    </th>
+  );
+
   const getClassificationColor = (c) => {
     const map = {
       'Class I': 'bg-red-100 text-red-800',
@@ -124,6 +186,26 @@ export function RecallsDatabase() {
     };
     return map[c] || map['Pending Review'];
   };
+
+  const groupByItemNumber = (recalls) => {
+    const grouped = {};
+    recalls.forEach((recall) => {
+      const itemNumber = recall.result?.item_number || 'Unknown';
+      if (!grouped[itemNumber]) {
+        grouped[itemNumber] = [];
+      }
+      grouped[itemNumber].push(recall);
+    });
+    return grouped;
+  };
+
+  const displayRecalls = showDuplicates 
+    ? Object.entries(groupByItemNumber(sortedAndFilteredRecalls)).map(([itemNumber, group]) => ({
+        itemNumber,
+        group: group.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+        isGroup: true
+      }))
+    : sortedAndFilteredRecalls.map(recall => ({ recall, isGroup: false }));
 
   if (loading) {
     return (
@@ -174,14 +256,14 @@ export function RecallsDatabase() {
                   <th className="text-left px-4 py-3">Item Number</th>
                   <th className="text-left px-4 py-3">Manufacturer</th>
                   <th className="text-left px-4 py-3">Product Code</th>
-                  <th className="text-left px-4 py-3">FDA Class</th>
-                  <th className="text-left px-4 py-3">Created</th>
+                  <SortHeader column="fda_class" label="FDA Class" />
+                  <SortHeader column="created_at" label="Created" />
                   <th className="text-left px-4 py-3">Actions</th>
                 </tr>
               </thead>
 
               <tbody>
-                {filteredRecalls.map((recall) => (
+                {sortedAndFilteredRecalls.map((recall) => (
                   <Fragment key={recall.id}>
                     <tr className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3 font-mono text-sm">
@@ -303,6 +385,22 @@ export function RecallsDatabase() {
                                   <span className="font-semibold text-gray-700">File Type:</span>
                                   <p className="text-gray-600">{recall.result.filetype || '-'}</p>
                                 </div>
+
+                                {recall.file_url && (
+                                  <div className="col-span-2">
+                                    <span className="font-semibold">Recall PDF:</span>
+                                    <div className="mt-1">
+                                      <a
+                                        href={recall.file_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 underline"
+                                      >
+                                        Open Document
+                                      </a>
+                                    </div>
+                                  </div>
+                                )}
                                 <div>
                                   <span className="font-semibold text-gray-700">Created:</span>
                                   <p className="text-gray-600">
