@@ -26,16 +26,41 @@ export function RecallsDatabase() {
   const [sortColumn, setSortColumn] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('desc');
   const [showDuplicates, setShowDuplicates] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAllRecalls, setShowAllRecalls] = useState(false);
+
+  useEffect(() => {
+    checkUserRole();
+  }, []);
 
   useEffect(() => {
     fetchRecalls();
-  }, []);
+  }, [showAllRecalls]);
+
+  const checkUserRole = async () => {
+    try {
+      const idToken = await getFreshIdToken();
+      // Try to fetch admin recalls to check if user is admin
+      const res = await fetch(`${BACKEND_URL}/admin/recalls`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      setIsAdmin(res.ok);
+      // Set initial state to show all recalls only if admin
+      if (!res.ok) {
+        setShowAllRecalls(false);
+      }
+    } catch (err) {
+      setIsAdmin(false);
+      setShowAllRecalls(false);
+    }
+  };
 
   const fetchRecalls = async () => {
     try {
       setLoading(true);
       const idToken = await getFreshIdToken();
-      const res = await fetch(`${BACKEND_URL}/admin/recalls`, {
+      const endpoint = (isAdmin && showAllRecalls) ? '/admin/recalls' : '/user/recalls';
+      const res = await fetch(`${BACKEND_URL}${endpoint}`, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
 
@@ -217,10 +242,26 @@ export function RecallsDatabase() {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold">Recalls</h1>
-      <p className="text-gray-600 mt-1 mb-6">
-        Manage recalls and classifications
-      </p>
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">{isAdmin ? 'Manage Recalls' : 'My Recalls'}</h1>
+          <p className="text-gray-600 mt-1">
+            {isAdmin ? (showAllRecalls ? 'All Recalls' : 'View your submitted recalls') : 'View your submitted recalls'}
+          </p>
+        </div>
+        {isAdmin && (
+          <button
+            onClick={() => setShowAllRecalls(!showAllRecalls)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              showAllRecalls
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+            }`}
+          >
+            {showAllRecalls ? 'My Recalls' : 'All Recalls'}
+          </button>
+        )}
+      </div>
 
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">

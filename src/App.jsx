@@ -23,6 +23,8 @@ function getPageTitle(pathname, user) {
       return 'RapidMD - Manage Users';
     case '/admin/recalls':
       return 'RapidMD - Manage Recalls';
+    case '/my-recalls':
+      return 'RapidMD - My Recalls';
     case '/documents':
       return 'RapidMD - Documents';
     default:
@@ -147,6 +149,10 @@ function AppContent() {
           <Route 
             path="/admin/recalls" 
             element={userRole === 'admin' ? <RecallsDatabase /> : <Navigate to="/" replace />} 
+          />
+          <Route 
+            path="/my-recalls" 
+            element={userRole !== 'admin' ? <RecallsDatabase /> : <Navigate to="/admin/recalls" replace />} 
           />
           <Route path="/documents" element={<Documents user={user} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
