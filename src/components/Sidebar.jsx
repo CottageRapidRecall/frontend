@@ -8,6 +8,10 @@ const baseNavigation = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
+const userNavigation = [
+  { name: 'My Recalls', href: '/my-recalls', icon: Database },
+];
+
 const adminNavigation = [
   { name: 'Manage Users', href: '/admin/users', icon: Users },
   { name: 'Manage Recalls', href: '/admin/recalls', icon: Database },
@@ -19,7 +23,7 @@ export function Sidebar({ user, userRole, onSignOut }) {
   // Combine navigation items based on user role
   const navigation = userRole === 'admin' 
     ? [...baseNavigation, ...adminNavigation]
-    : baseNavigation;
+    : [...baseNavigation, ...userNavigation];
 
   return (
     <div className="flex flex-col h-screen w-64 bg-white border-r border-gray-200">
