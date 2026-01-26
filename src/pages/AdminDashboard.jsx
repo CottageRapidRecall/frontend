@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
 import { Activity, FileText, AlertCircle, CheckCircle, Users, Settings, Square, CheckSquare, RotateCcw, ChevronDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { getFreshIdToken } from '../lib/tokenManager';
 
 const BACKEND_URL =
@@ -193,9 +192,8 @@ export function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Action Items + Admin Controls side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Action Items */}
+      {/* Action Items */}
+      <div className="mb-6">
         <Card>
           <CardHeader>
             <CardTitle>Action Items ({actionItems.length} pending)</CardTitle>
@@ -214,15 +212,11 @@ export function AdminDashboard() {
             ) : (
               <div className="space-y-3">
                 {actionItems.map((recall) => (
-                  <div
-                    key={recall.id}
-                    className="border rounded-lg overflow-hidden"
-                  >
-                    {/* Collapsed View - Click to expand */}
+                  <div key={recall.id} className="border rounded-lg overflow-hidden">
                     <button
-                      onClick={() => setExpandedActionId(
-                        expandedActionId === recall.id ? null : recall.id
-                      )}
+                      onClick={() =>
+                        setExpandedActionId(expandedActionId === recall.id ? null : recall.id)
+                      }
                       className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 text-left"
                     >
                       <ChevronDown
@@ -248,13 +242,10 @@ export function AdminDashboard() {
                         </p>
                       </div>
                       <span className="text-xs text-gray-400 flex-shrink-0">
-                        {recall.created_at
-                          ? new Date(recall.created_at).toLocaleDateString()
-                          : '-'}
+                        {recall.created_at ? new Date(recall.created_at).toLocaleDateString() : '-'}
                       </span>
                     </button>
 
-                    {/* Expanded View - More details + Acknowledge button */}
                     {expandedActionId === recall.id && (
                       <div className="border-t bg-gray-50 p-4">
                         <div className="grid grid-cols-2 gap-3 text-sm mb-4">
@@ -301,36 +292,8 @@ export function AdminDashboard() {
             )}
           </CardContent>
         </Card>
-
-        {/* Admin Controls */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Admin Controls
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Link
-                to="/admin/users"
-                className="block w-full px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition-colors text-center"
-              >
-                Manage Users
-              </Link>
-              <Link
-                to="/admin/recalls"
-                className="block w-full px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition-colors text-center"
-              >
-                View Recalls
-              </Link>
-              <button className="w-full px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition-colors">
-                System Settings
-              </button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
+
 
       {/* Recent Recalls - full width below */}
       <Card>
