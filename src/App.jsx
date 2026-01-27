@@ -38,7 +38,7 @@ function AppContent() {
   const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || 'user');
   const location = useLocation();
 
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8080';
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {

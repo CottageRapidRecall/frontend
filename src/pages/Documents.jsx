@@ -4,7 +4,7 @@ import { Button } from '../components/Button';
 import { FileText, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { auth } from '../lib/firebase';
 
-const BACKEND_URL = 'https://rapidrecall-production.up.railway.app' || 'http://localhost:8080';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8080';
 
 export function Documents({ user }) {
   const [selectedFile, setSelectedFile] = useState(null);

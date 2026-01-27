@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
 import { Search, UserCheck, UserX, Trash2 } from 'lucide-react';
 import { getFreshIdToken } from '../lib/tokenManager';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8080';
 
 export function AdminPanel() {
   const [users, setUsers] = useState([]);
