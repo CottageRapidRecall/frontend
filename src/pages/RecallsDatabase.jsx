@@ -1,6 +1,6 @@
 import { useState, useEffect, Fragment } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
-import { Search, Edit2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Edit2, ChevronDown, ChevronUp, RotateCcw, CheckSquare, Square } from 'lucide-react';
 import { getFreshIdToken } from '../lib/tokenManager';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8080';
@@ -9,7 +9,7 @@ const CLASSIFICATION_OPTIONS = [
   'Class I',
   'Class II',
   'Class III',
-  'Pending Review',
+  'Pending',
   'Not Applicable',
 ];
 
@@ -77,7 +77,7 @@ export function RecallsDatabase() {
   const handleEditClassification = (recall) => {
     setEditingId(recall.id);
     setEditingClassification(
-      recall.result?.fda_class || 'Pending Review'
+      recall.result?.fda_class || 'Pending'
     );
   };
 
@@ -127,6 +127,58 @@ export function RecallsDatabase() {
       setError(err.message);
     } finally {
       setUpdateLoading(false);
+    }
+  };
+
+  const handleMarkReviewed = async (recallId) => {
+    try {
+      const idToken = await getFreshIdToken();
+      const res = await fetch(`${BACKEND_URL}/admin/recall-review`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recallId }),
+      });
+
+      if (!res.ok) throw new Error('Failed to mark recall as reviewed');
+
+      setRecalls((prev) =>
+        prev.map((r) =>
+          r.id === recallId
+            ? { ...r, reviewed_at: new Date().toISOString() }
+            : r
+        )
+      );
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleMarkPending = async (recallId) => {
+    try {
+      const idToken = await getFreshIdToken();
+      const res = await fetch(`${BACKEND_URL}/admin/recall-unreview`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recallId }),
+      });
+
+      if (!res.ok) throw new Error('Failed to mark recall as pending');
+
+      setRecalls((prev) =>
+        prev.map((r) =>
+          r.id === recallId
+            ? { ...r, reviewed_at: null }
+            : r
+        )
+      );
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -213,10 +265,10 @@ export function RecallsDatabase() {
       'Class I': 'bg-red-100 text-red-800',
       'Class II': 'bg-orange-100 text-orange-800',
       'Class III': 'bg-yellow-100 text-yellow-800',
-      'Pending Review': 'bg-blue-100 text-blue-800',
+      'Pending': 'bg-blue-100 text-blue-800',
       'Not Applicable': 'bg-gray-100 text-gray-800',
     };
-    return map[c] || map['Pending Review'];
+    return map[c] || map['Pending'];
   };
 
   const groupByItemNumber = (recalls) => {
@@ -306,6 +358,7 @@ export function RecallsDatabase() {
                   <th className="text-left px-4 py-3">Product Code</th>
                   <SortHeader column="fda_class" label="FDA Class" />
                   <SortHeader column="created_at" label="Created" />
+                  <th className="text-left px-4 py-3">Status</th>
                   <th className="text-left px-4 py-3">Actions</th>
                 </tr>
               </thead>
@@ -371,6 +424,26 @@ export function RecallsDatabase() {
                           : '-'}
                       </td>
                       <td className="px-4 py-3">
+                        <select
+                          value={recall.reviewed_at ? 'reviewed' : 'pending'}
+                          onChange={(e) => {
+                            if (e.target.value === 'reviewed' && !recall.reviewed_at) {
+                              handleMarkReviewed(recall.id);
+                            } else if (e.target.value === 'pending' && recall.reviewed_at) {
+                              handleMarkPending(recall.id);
+                            }
+                          }}
+                          className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
+                            recall.reviewed_at
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="reviewed">Reviewed</option>
+                        </select>
+                      </td>
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           {editingId !== recall.id && (
                             <button
@@ -378,6 +451,7 @@ export function RecallsDatabase() {
                                 handleEditClassification(recall)
                               }
                               className="p-2 hover:bg-blue-50 rounded"
+                              title="Edit Classification"
                             >
                               <Edit2 className="h-4 w-4 text-blue-600" />
                             </button>
@@ -391,6 +465,7 @@ export function RecallsDatabase() {
                               )
                             }
                             className="p-2 hover:bg-gray-100 rounded"
+                            title="View Details"
                           >
                             <ChevronDown
                               className={`h-4 w-4 transition-transform ${
@@ -407,7 +482,7 @@ export function RecallsDatabase() {
                     {/* Expanded Details Row */}
                         {expandedId === recall.id && (
                           <tr className="bg-gray-50 border-b border-gray-200">
-                            <td colSpan="6" className="py-4 px-4">
+                            <td colSpan="7" className="py-4 px-4">
                               <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                   <span className="font-semibold text-gray-700">Item Number:</span>
@@ -466,11 +541,11 @@ export function RecallsDatabase() {
                                   </p>
                                 </div>
                                 <div>
-                                  <span className="font-semibold text-gray-700">Date Acknowledgment Submitted:</span>
+                                  <span className="font-semibold text-gray-700">Date Reviewed:</span>
                                   <p className="text-gray-600">
-                                    {recall.date_acknowledgment_submitted
-                                      ? new Date(recall.date_acknowledgment_submitted).toLocaleString()
-                                      : '-'}
+                                    {recall.reviewed_at
+                                      ? new Date(recall.reviewed_at).toLocaleString()
+                                      : 'Not yet reviewed'}
                                   </p>
                                 </div>
                                 {recall.result && (
