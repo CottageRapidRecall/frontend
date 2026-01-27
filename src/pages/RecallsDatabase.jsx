@@ -431,7 +431,7 @@ export function RecallsDatabase() {
                                 </div>
                                 <div>
                                   <span className="font-semibold text-gray-700">File Type:</span>
-                                  <p className="text-gray-600">{recall.result?.filetype === 'scannedpdf'? 'Scanned PDF' : '-'}</p>
+                                  <p className="text-gray-600">{recall.result?.filetype === 'scannedpdf' ? 'Scanned PDF' : (recall.result?.filetype === 'textpdf' ? 'Text PDF' : '-')}</p>
                                 </div>
 
                                 {recall.file_url && (
