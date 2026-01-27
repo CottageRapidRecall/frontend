@@ -108,7 +108,8 @@ export function AdminDashboard() {
 
   // Action items: all recalls that haven't been reviewed yet
   const actionItems = recalls.filter(
-    (r) => !r.reviewed_at
+    // TODO: Added time filter for sake of demo, remove later
+    (r) => !r.reviewed_at && (r.date_notification_received > "2026-01-25T0:0:0+00:00") 
   );
 
   // Recent recalls: last 5 recalls
@@ -228,17 +229,17 @@ export function AdminDashboard() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
                             className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getClassificationColor(
-                              recall.result?.fda_class
+                              recall.result?.recall_data?.recall_items[0]?.fda_class
                             )}`}
                           >
-                            {recall.result?.fda_class || 'Pending'}
+                            {recall.result?.recall_data?.recall_items[0]?.fda_class || 'Pending'}
                           </span>
                           <span className="font-medium text-gray-900 truncate">
-                            {recall.result?.item_number || recall.id}
+                            {recall.result?.recall_data?.recall_items[0]?.product_description || recall.id}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 truncate">
-                          {recall.result?.manufacturer || 'Unknown manufacturer'}
+                          {recall.result?.recall_data?.recall_items[0]?.manufacturer || 'Unknown manufacturer'}
                         </p>
                       </div>
                       <span className="text-xs text-gray-400 flex-shrink-0">
@@ -251,23 +252,23 @@ export function AdminDashboard() {
                         <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                           <div>
                             <span className="font-semibold text-gray-700">Item Number:</span>
-                            <p className="text-gray-600">{recall.result?.item_number || '-'}</p>
+                            <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.catalog_search?.item_number || '-'}</p>
                           </div>
                           <div>
-                            <span className="font-semibold text-gray-700">Lot Code:</span>
-                            <p className="text-gray-600">{recall.result?.lot_code || '-'}</p>
+                            <span className="font-semibold text-gray-700">Lot Code(s):</span>
+                            <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.lot_codes.join(', ') || '-'}</p>
                           </div>
                           <div>
                             <span className="font-semibold text-gray-700">Manufacturer:</span>
-                            <p className="text-gray-600">{recall.result?.manufacturer || '-'}</p>
+                            <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.manufacturer || '-'}</p>
                           </div>
                           <div>
                             <span className="font-semibold text-gray-700">Product Code:</span>
-                            <p className="text-gray-600">{recall.result?.product_code || '-'}</p>
+                            <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.product_code || '-'}</p>
                           </div>
                           <div>
                             <span className="font-semibold text-gray-700">FDA Class:</span>
-                            <p className="text-gray-600">{recall.result?.fda_class || '-'}</p>
+                            <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.fda_class || '-'}</p>
                           </div>
                           <div>
                             <span className="font-semibold text-gray-700">Date Received:</span>
@@ -320,20 +321,20 @@ export function AdminDashboard() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-900 truncate">
-                        {recall.result?.item_number || recall.id}
+                        {recall.result?.recall_data?.recall_items[0]?.product_description || recall.id}
                       </span>
-                      {recall.result?.fda_class && (
+                      {recall.result?.recall_data?.recall_items[0]?.fda_class && (
                         <span
                           className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getClassificationColor(
-                            recall.result.fda_class
+                            recall.result?.recall_data?.recall_items[0]?.fda_class
                           )}`}
                         >
-                          {recall.result.fda_class}
+                          {recall.result?.recall_data?.recall_items[0]?.fda_class}
                         </span>
                       )}
                     </div>
                     <p className="text-sm text-gray-600 truncate">
-                      {recall.result?.manufacturer || 'Processing...'}
+                      {recall.result?.recall_data?.recall_items[0]?.manufacturer || 'Processing...'}
                     </p>
                   </div>
                   <span className="text-xs text-gray-400 flex-shrink-0">

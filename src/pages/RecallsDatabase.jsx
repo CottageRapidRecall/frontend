@@ -77,7 +77,7 @@ export function RecallsDatabase() {
   const handleEditClassification = (recall) => {
     setEditingId(recall.id);
     setEditingClassification(
-      recall.result?.fda_class || 'Pending'
+      recall.result?.recall_data?.recall_items[0]?.fda_class || 'Pending'
     );
   };
 
@@ -182,7 +182,9 @@ export function RecallsDatabase() {
     }
   };
 
-  const filteredRecalls = recalls.filter((r) => {
+  // TODO: Added time filter for sake of demo, remove later
+  const recentRecalls = recalls.filter((r) => r.date_notification_received > "2026-01-25T0:0:0+00:00")
+  const filteredRecalls = recentRecalls.filter((r) => {
     const s = searchTerm.toLowerCase();
     return (
       r.id?.toLowerCase().includes(s) ||
