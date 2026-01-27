@@ -13,22 +13,22 @@ import { Documents } from './pages/Documents';
 // Helper function to get page title based on route
 function getPageTitle(pathname, user) {
   if (!user) {
-    return 'RapidMD - Login';
+    return 'RapidRecall - Login';
   }
 
   switch (pathname) {
     case '/':
-      return 'RapidMD - Dashboard';
+      return 'RapidRecall - Dashboard';
     case '/admin/users':
-      return 'RapidMD - Manage Users';
+      return 'RapidRecall - Manage Users';
     case '/admin/recalls':
-      return 'RapidMD - Manage Recalls';
+      return 'RapidRecall - Manage Recalls';
     case '/my-recalls':
-      return 'RapidMD - My Recalls';
+      return 'RapidRecall - My Recalls';
     case '/documents':
-      return 'RapidMD - Documents';
+      return 'RapidRecall - Documents';
     default:
-      return 'RapidMD';
+      return 'RapidRecall';
   }
 }
 
