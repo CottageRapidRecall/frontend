@@ -5,7 +5,7 @@ import { cn } from '../lib/utils';
 const baseNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Documents', href: '/documents', icon: FileText },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  // { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 const userNavigation = [
@@ -29,7 +29,7 @@ export function Sidebar({ user, userRole, onSignOut }) {
     <div className="flex flex-col h-screen w-64 bg-white border-r border-gray-200">
       {/* Logo/Brand */}
       <div className="flex items-center h-16 px-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-900">RapidRecall</h1>
+        <h1 className="text-xl font-bold text-gray-950">RapidRecall</h1>
       </div>
 
       {/* Navigation */}
