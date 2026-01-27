@@ -10,7 +10,7 @@ const CLASSIFICATION_OPTIONS = [
   'Class I',
   'Class II',
   'Class III',
-  'Pending Review',
+  'Pending',
   'Not Applicable',
 ];
 
@@ -77,7 +77,7 @@ export function RecallsDatabase() {
   const handleEditClassification = (recall) => {
     setEditingId(recall.id);
     setEditingClassification(
-      recall.result?.fda_class || 'Pending Review'
+      recall.result?.fda_class || 'Pending'
     );
   };
 
@@ -130,10 +130,10 @@ export function RecallsDatabase() {
     }
   };
 
-  const handleAcknowledge = async (recallId) => {
+  const handleMarkReviewed = async (recallId) => {
     try {
       const idToken = await getFreshIdToken();
-      const res = await fetch(`${BACKEND_URL}/admin/recall-acknowledge`, {
+      const res = await fetch(`${BACKEND_URL}/admin/recall-review`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -142,12 +142,12 @@ export function RecallsDatabase() {
         body: JSON.stringify({ recallId }),
       });
 
-      if (!res.ok) throw new Error('Failed to acknowledge recall');
+      if (!res.ok) throw new Error('Failed to mark recall as reviewed');
 
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, date_acknowledgment_submitted: new Date().toISOString() }
+            ? { ...r, reviewed_at: new Date().toISOString() }
             : r
         )
       );
@@ -156,10 +156,10 @@ export function RecallsDatabase() {
     }
   };
 
-  const handleUnacknowledge = async (recallId) => {
+  const handleMarkPending = async (recallId) => {
     try {
       const idToken = await getFreshIdToken();
-      const res = await fetch(`${BACKEND_URL}/admin/recall-unacknowledge`, {
+      const res = await fetch(`${BACKEND_URL}/admin/recall-unreview`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -168,12 +168,12 @@ export function RecallsDatabase() {
         body: JSON.stringify({ recallId }),
       });
 
-      if (!res.ok) throw new Error('Failed to unacknowledge recall');
+      if (!res.ok) throw new Error('Failed to mark recall as pending');
 
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, date_acknowledgment_submitted: null }
+            ? { ...r, reviewed_at: null }
             : r
         )
       );
@@ -210,8 +210,8 @@ export function RecallsDatabase() {
       aValue = new Date(a.created_at || 0).getTime();
       bValue = new Date(b.created_at || 0).getTime();
     } else if (sortColumn === 'fda_class') {
-      aValue = a.result?.fda_class || 'Pending Review';
-      bValue = b.result?.fda_class || 'Pending Review';
+      aValue = a.result?.fda_class || 'Pending';
+      bValue = b.result?.fda_class || 'Pending';
     }
 
     if (aValue === undefined || bValue === undefined) return 0;
@@ -258,10 +258,10 @@ export function RecallsDatabase() {
       'Class I': 'bg-red-100 text-red-800',
       'Class II': 'bg-orange-100 text-orange-800',
       'Class III': 'bg-yellow-100 text-yellow-800',
-      'Pending Review': 'bg-blue-100 text-blue-800',
+      'Pending': 'bg-blue-100 text-blue-800',
       'Not Applicable': 'bg-gray-100 text-gray-800',
     };
-    return map[c] || map['Pending Review'];
+    return map[c] || map['Pending'];
   };
 
   const groupByItemNumber = (recalls) => {
@@ -405,7 +405,7 @@ export function RecallsDatabase() {
                               recall.result?.fda_class
                             )}`}
                           >
-                            {recall.result?.fda_class || 'Pending Review'}
+                            {recall.result?.fda_class || 'Pending'}
                           </span>
                         )}
                       </td>
@@ -418,22 +418,22 @@ export function RecallsDatabase() {
                       </td>
                       <td className="px-4 py-3">
                         <select
-                          value={recall.date_acknowledgment_submitted ? 'processed' : 'in_progress'}
+                          value={recall.reviewed_at ? 'reviewed' : 'pending'}
                           onChange={(e) => {
-                            if (e.target.value === 'processed' && !recall.date_acknowledgment_submitted) {
-                              handleAcknowledge(recall.id);
-                            } else if (e.target.value === 'in_progress' && recall.date_acknowledgment_submitted) {
-                              handleUnacknowledge(recall.id);
+                            if (e.target.value === 'reviewed' && !recall.reviewed_at) {
+                              handleMarkReviewed(recall.id);
+                            } else if (e.target.value === 'pending' && recall.reviewed_at) {
+                              handleMarkPending(recall.id);
                             }
                           }}
                           className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
-                            recall.date_acknowledgment_submitted
+                            recall.reviewed_at
                               ? 'bg-green-100 text-green-700'
                               : 'bg-yellow-100 text-yellow-700'
                           }`}
                         >
-                          <option value="in_progress">In Progress</option>
-                          <option value="processed">Processed</option>
+                          <option value="pending">Pending</option>
+                          <option value="reviewed">Reviewed</option>
                         </select>
                       </td>
                       <td className="px-4 py-3">
@@ -534,11 +534,11 @@ export function RecallsDatabase() {
                                   </p>
                                 </div>
                                 <div>
-                                  <span className="font-semibold text-gray-700">Date Acknowledgment Submitted:</span>
+                                  <span className="font-semibold text-gray-700">Date Reviewed:</span>
                                   <p className="text-gray-600">
-                                    {recall.date_acknowledgment_submitted
-                                      ? new Date(recall.date_acknowledgment_submitted).toLocaleString()
-                                      : '-'}
+                                    {recall.reviewed_at
+                                      ? new Date(recall.reviewed_at).toLocaleString()
+                                      : 'Not yet reviewed'}
                                   </p>
                                 </div>
                                 {recall.result && (

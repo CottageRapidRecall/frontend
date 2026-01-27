@@ -11,10 +11,10 @@ const getClassificationColor = (c) => {
     'Class I': 'bg-red-100 text-red-800',
     'Class II': 'bg-orange-100 text-orange-800',
     'Class III': 'bg-yellow-100 text-yellow-800',
-    'Pending Review': 'bg-blue-100 text-blue-800',
+    'Pending': 'bg-blue-100 text-blue-800',
     'Not Applicable': 'bg-gray-100 text-gray-800',
   };
-  return map[c] || map['Pending Review'];
+  return map[c] || map['Pending'];
 };
 
 export function AdminDashboard() {
@@ -54,10 +54,10 @@ export function AdminDashboard() {
     }
   };
 
-  const handleAcknowledge = async (recallId) => {
+  const handleMarkReviewed = async (recallId) => {
     try {
       const idToken = await getFreshIdToken();
-      const res = await fetch(`${BACKEND_URL}/admin/recall-acknowledge`, {
+      const res = await fetch(`${BACKEND_URL}/admin/recall-review`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -66,12 +66,12 @@ export function AdminDashboard() {
         body: JSON.stringify({ recallId }),
       });
 
-      if (!res.ok) throw new Error('Failed to acknowledge recall');
+      if (!res.ok) throw new Error('Failed to mark recall as reviewed');
 
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, date_acknowledgment_submitted: new Date().toISOString() }
+            ? { ...r, reviewed_at: new Date().toISOString() }
             : r
         )
       );
@@ -80,10 +80,10 @@ export function AdminDashboard() {
     }
   };
 
-  const handleUnacknowledge = async (recallId) => {
+  const handleMarkPending = async (recallId) => {
     try {
       const idToken = await getFreshIdToken();
-      const res = await fetch(`${BACKEND_URL}/admin/recall-unacknowledge`, {
+      const res = await fetch(`${BACKEND_URL}/admin/recall-unreview`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -92,12 +92,12 @@ export function AdminDashboard() {
         body: JSON.stringify({ recallId }),
       });
 
-      if (!res.ok) throw new Error('Failed to unacknowledge recall');
+      if (!res.ok) throw new Error('Failed to mark recall as pending');
 
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, date_acknowledgment_submitted: null }
+            ? { ...r, reviewed_at: null }
             : r
         )
       );
@@ -106,9 +106,9 @@ export function AdminDashboard() {
     }
   };
 
-  // Action items: all recalls that haven't been acknowledged (in progress)
+  // Action items: all recalls that haven't been reviewed yet
   const actionItems = recalls.filter(
-    (r) => !r.date_acknowledgment_submitted
+    (r) => !r.reviewed_at
   );
 
   // Recent recalls: last 5 recalls
@@ -118,8 +118,8 @@ export function AdminDashboard() {
 
   // Stats
   const totalRecalls = recalls.length;
-  const inProgress = actionItems.length;
-  const processed = recalls.filter((r) => r.date_acknowledgment_submitted).length;
+  const pending = actionItems.length;
+  const reviewed = recalls.filter((r) => r.reviewed_at).length;
 
   return (
     <div className="p-8">
@@ -167,8 +167,8 @@ export function AdminDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">In Progress</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{inProgress}</p>
+                <p className="text-sm font-medium text-gray-600">Pending</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{pending}</p>
               </div>
               <div className="p-3 bg-yellow-100 rounded-full">
                 <Activity className="h-6 w-6 text-yellow-600" />
@@ -181,8 +181,8 @@ export function AdminDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Processed</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{processed}</p>
+                <p className="text-sm font-medium text-gray-600">Reviewed</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{reviewed}</p>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
                 <CheckCircle className="h-6 w-6 text-green-600" />
@@ -279,10 +279,10 @@ export function AdminDashboard() {
                           </div>
                         </div>
                         <button
-                          onClick={() => handleAcknowledge(recall.id)}
+                          onClick={() => handleMarkReviewed(recall.id)}
                           className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                         >
-                          Mark as Processed
+                          Mark as Reviewed
                         </button>
                       </div>
                     )}
@@ -342,22 +342,22 @@ export function AdminDashboard() {
                       : '-'}
                   </span>
                   <select
-                    value={recall.date_acknowledgment_submitted ? 'processed' : 'in_progress'}
+                    value={recall.reviewed_at ? 'reviewed' : 'pending'}
                     onChange={(e) => {
-                      if (e.target.value === 'processed' && !recall.date_acknowledgment_submitted) {
-                        handleAcknowledge(recall.id);
-                      } else if (e.target.value === 'in_progress' && recall.date_acknowledgment_submitted) {
-                        handleUnacknowledge(recall.id);
+                      if (e.target.value === 'reviewed' && !recall.reviewed_at) {
+                        handleMarkReviewed(recall.id);
+                      } else if (e.target.value === 'pending' && recall.reviewed_at) {
+                        handleMarkPending(recall.id);
                       }
                     }}
                     className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
-                      recall.date_acknowledgment_submitted
+                      recall.reviewed_at
                         ? 'bg-green-100 text-green-700'
                         : 'bg-yellow-100 text-yellow-700'
                     }`}
                   >
-                    <option value="in_progress">In Progress</option>
-                    <option value="processed">Processed</option>
+                    <option value="pending">Pending</option>
+                    <option value="reviewed">Reviewed</option>
                   </select>
                 </div>
               ))}
