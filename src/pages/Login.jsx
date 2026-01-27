@@ -67,17 +67,20 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-lime-700 to-slate-800 p-4">
       {/* Main Container - White Rounded Box */}
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[550px]">
-        {/* Left Panel - Form */}
-        <div className="w-full lg:w-1/2 flex flex-col items-center justify-start px-6 sm:px- py-20">
+      <div className="w-1/2 max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[550px]">
+        <div className="w-full flex flex-col items-center justify-start px-6 sm:px- py-20">
+          <img src="/images/rapidrecall_logo_name.svg" alt="RapidRecall Logo" className="w-2/3"/>
+          <h1 className="text-base justify-center sm:text-l font-light text-slate-950 pb-3">
+            Supply chain medical recalls in minutes.
+          </h1>
           <div className="w-full max-w-sm">
             {/* Header */}
-            <div className="text-center mb-12">
-              <h1 className="text-3xl sm:text-3xl font-bold text-gray-900 mb-3">
-                Log in to Dashboard
-              </h1>
+            <div className="text-center mb-3">
+              <h2 className="text-base sm:text-xl font-light text-slate-950 pt-5">
+                Login to Dashboard
+              </h2>
               <p className="text-gray-600 text-sm sm:text-base">
               </p>
             </div>
@@ -131,23 +134,10 @@ export function Login() {
             )}
 
             {/* Footer */}
-            <p className="text-xs text-center text-gray-500 mt-8">
-              By signing in, you agree to our Terms of Service and Privacy Policy
+            <p className="text-xs font-light text-center text-gray-500 mt-8">
+              By signing in, you agree to our <a href="" className="text-lime-700">Terms of Service</a> and <a href="" className="text-lime-700">Privacy Policy</a>.
             </p>
           </div>
-        </div>
-
-        {/* Right Panel */}
-        <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-start relative p-8 py-20 bg-gradient-to-br from-blue-300 via-cyan-200 to-green-100 opacity-90">
-          <div className="w-full">
-            <h1 className="text-3xl justify-center md:text-4xl font-bold text-black mb-3">
-              Welcome to RecallMD!
-            </h1>
-            <p className="text-gray-700 text-sm md:text-xl">
-              Medical device recalls in minutes.
-            </p>
-          </div>
-          
         </div>
       </div>
     </div>

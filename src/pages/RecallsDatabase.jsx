@@ -3,8 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
 import { Search, Edit2, ChevronDown, ChevronUp, RotateCcw, CheckSquare, Square } from 'lucide-react';
 import { getFreshIdToken } from '../lib/tokenManager';
 
-const BACKEND_URL =
-  import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8080';
 
 const CLASSIFICATION_OPTIONS = [
   'Class I',
