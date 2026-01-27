@@ -67,18 +67,18 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-lime-300 via-cyan-200 to-amber-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-lime-700 to-slate-800 p-4">
       {/* Main Container - White Rounded Box */}
       <div className="w-1/2 max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[550px]">
         <div className="w-full flex flex-col items-center justify-start px-6 sm:px- py-20">
           <img src="/images/rapidrecall_logo_name.svg" alt="RapidRecall Logo" className="w-2/3"/>
-          <h1 className="text-base justify-center sm:text-l font-light text-lime-950 pb-3">
+          <h1 className="text-base justify-center sm:text-l font-light text-slate-950 pb-3">
             Supply chain medical recalls in minutes.
           </h1>
           <div className="w-full max-w-sm">
             {/* Header */}
             <div className="text-center mb-3">
-              <h2 className="text-base sm:text-xl font-light text-lime-950 pt-5">
+              <h2 className="text-base sm:text-xl font-light text-slate-950 pt-5">
                 Login to Dashboard
               </h2>
               <p className="text-gray-600 text-sm sm:text-base">
