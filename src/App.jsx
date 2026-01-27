@@ -5,6 +5,7 @@ import { auth } from './lib/firebase';
 import { getFreshIdToken } from './lib/tokenManager';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminPanel } from './pages/AdminPanel';
 import { RecallsDatabase } from './pages/RecallsDatabase';
 import { Login } from './pages/Login';
@@ -141,7 +142,7 @@ function AppContent() {
       <Sidebar user={user} userRole={userRole} onSignOut={handleSignOut} />
       <main className="flex-1 overflow-y-auto">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={userRole === 'admin' ? <AdminDashboard /> : <Dashboard />} />
           <Route 
             path="/admin/users" 
             element={userRole === 'admin' ? <AdminPanel /> : <Navigate to="/" replace />} 
