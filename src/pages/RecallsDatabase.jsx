@@ -66,6 +66,7 @@ export function RecallsDatabase() {
       if (!res.ok) throw new Error('Failed to fetch recalls');
       const data = await res.json();
       setRecalls(Array.isArray(data.recalls) ? data.recalls : []);
+      // console.log(data.recalls)
     } catch (err) {
       setError(err.message);
     } finally {
@@ -185,13 +186,20 @@ export function RecallsDatabase() {
     const s = searchTerm.toLowerCase();
     return (
       r.id?.toLowerCase().includes(s) ||
-      r.result?.item_number?.toLowerCase().includes(s) ||
-      r.result?.manufacturer?.toLowerCase().includes(s) ||
-      r.result?.product_name?.toLowerCase().includes(s) ||
-      r.result?.product_code?.toLowerCase().includes(s) ||
-      r.result?.fda_class?.toLowerCase().includes(s)
+      r.result?.recall_data?.recall_items[0]?.catalog_search?.item_number?.toLowerCase().includes(s) ||
+      r.result?.recall_data?.recall_items[0]?.manufacturer?.toLowerCase().includes(s) ||
+      r.result?.recall_data?.recall_items[0]?.product_name?.toLowerCase().includes(s) ||
+      r.result?.recall_data?.recall_items[0]?.product_code?.toLowerCase().includes(s) ||
+      r.result?.recall_data?.recall_items[0]?.fda_class?.toLowerCase().includes(s)
+      // r.result?.recall_data?.recall_items?.item_number?.toLowerCase().includes(s) ||
+      // r.result?.recall_data?.recall_items?.manufacturer?.toLowerCase().includes(s) ||
+      // r.result?.recall_data?.recall_items?.product_name?.toLowerCase().includes(s) ||
+      // r.result?.recall_data?.recall_items?.product_code?.toLowerCase().includes(s) ||
+      // r.result?.recall_data?.recall_items?.fda_class?.toLowerCase().includes(s)
     );
   });
+  // console.log("filtered recalls:")
+  // console.log(filteredRecalls[0].result.recall_data.recall_items[0].catalog_search.item_number)
 
   const handleSort = (column) => {
     if (sortColumn === column) {
@@ -209,8 +217,8 @@ export function RecallsDatabase() {
       aValue = new Date(a.created_at || 0).getTime();
       bValue = new Date(b.created_at || 0).getTime();
     } else if (sortColumn === 'fda_class') {
-      aValue = a.result?.fda_class || 'Pending';
-      bValue = b.result?.fda_class || 'Pending';
+      aValue = a.result?.recall_data?.recall_items?.fda_class || 'Pending Review';
+      bValue = b.result?.recall_data?.recall_items?.fda_class || 'Pending Review';
     }
 
     if (aValue === undefined || bValue === undefined) return 0;
@@ -266,7 +274,7 @@ export function RecallsDatabase() {
   const groupByItemNumber = (recalls) => {
     const grouped = {};
     recalls.forEach((recall) => {
-      const itemNumber = recall.result?.item_number || 'Unknown';
+      const itemNumber = recall.result?.recall_data?.recall_items?.item_number || 'Unknown';
       if (!grouped[itemNumber]) {
         grouped[itemNumber] = [];
       }
@@ -360,13 +368,13 @@ export function RecallsDatabase() {
                   <Fragment key={recall.id}>
                     <tr className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3 font-mono text-sm">
-                        {recall.result?.item_number || '-'}
+                        {recall.result?.recall_data?.recall_items[0]?.catalog_search?.item_number || '-'}
                       </td>
                       <td className="px-4 py-3">
-                        {recall.result?.manufacturer || '-'}
+                        {recall.result?.recall_data?.recall_items[0]?.manufacturer || '-'}
                       </td>
                       <td className="px-4 py-3">
-                        {recall.result?.product_code || '-'}
+                        {recall.result?.recall_data?.recall_items[0]?.product_code || '-'}
                       </td>
                       <td className="px-4 py-3">
                         {editingId === recall.id ? (
@@ -401,10 +409,10 @@ export function RecallsDatabase() {
                         ) : (
                           <span
                             className={`whitespace-nowrap inline-block px-3 py-1 rounded-full text-xs font-semibold ${getClassificationColor(
-                              recall.result?.fda_class
+                              recall.result?.recall_data?.recall_items?.fda_class
                             )}`}
                           >
-                            {recall.result?.fda_class || 'Pending'}
+                            {recall.result?.recall_data?.recall_items?.fda_class || 'Pending Review'}
                           </span>
                         )}
                       </td>
@@ -478,27 +486,27 @@ export function RecallsDatabase() {
                               <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                   <span className="font-semibold text-gray-700">Item Number:</span>
-                                  <p className="text-gray-600">{recall.result.item_number || '-'}</p>
+                                  <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.catalog_search?.item_number || '-'}</p>
                                 </div>
                                 <div>
-                                  <span className="font-semibold text-gray-700">Lot Code:</span>
-                                  <p className="text-gray-600">{recall.result.lot_code || '-'}</p>
+                                  <span className="font-semibold text-gray-700">Lot Code(s):</span>
+                                  <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.lot_codes.join(', ') || '-'}</p>
                                 </div>
                                 <div>
                                   <span className="font-semibold text-gray-700">Manufacturer:</span>
-                                  <p className="text-gray-600">{recall.result.manufacturer || '-'}</p>
+                                  <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.manufacturer || '-'}</p>
                                 </div>
                                 <div>
                                   <span className="font-semibold text-gray-700">Product Code:</span>
-                                  <p className="text-gray-600">{recall.result.product_code || '-'}</p>
+                                  <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.product_code || '-'}</p>
                                 </div>
                                 <div>
                                   <span className="font-semibold text-gray-700">FDA Class:</span>
-                                  <p className="text-gray-600">{recall.result.fda_class || '-'}</p>
+                                  <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.fda_class || '-'}</p>
                                 </div>
                                 <div>
                                   <span className="font-semibold text-gray-700">File Type:</span>
-                                  <p className="text-gray-600">{recall.result.filetype || '-'}</p>
+                                  <p className="text-gray-600">{recall.result?.filetype === 'scannedpdf' ? 'Scanned PDF' : (recall.result?.filetype === 'textpdf' ? 'Text PDF' : '-')}</p>
                                 </div>
 
                                 {recall.file_url && (
