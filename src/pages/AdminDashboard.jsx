@@ -108,8 +108,7 @@ export function AdminDashboard() {
 
   // Action items: all recalls that haven't been reviewed yet
   const actionItems = recalls.filter(
-    // TODO: Added time filter for sake of demo, remove later
-    (r) => !r.reviewed_at && (r.date_notification_received > "2026-01-25T0:0:0+00:00") 
+    (r) => !r.reviewed_at 
   );
 
   // Recent recalls: last 5 recalls

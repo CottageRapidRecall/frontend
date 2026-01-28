@@ -182,9 +182,7 @@ export function RecallsDatabase() {
     }
   };
 
-  // TODO: Added time filter for sake of demo, remove later
-  const recentRecalls = recalls.filter((r) => r.date_notification_received > "2026-01-25T0:0:0+00:00")
-  const filteredRecalls = recentRecalls.filter((r) => {
+  const filteredRecalls = recalls.filter((r) => {
     const s = searchTerm.toLowerCase();
     return (
       r.id?.toLowerCase().includes(s) ||
