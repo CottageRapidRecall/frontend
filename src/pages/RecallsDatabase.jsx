@@ -24,7 +24,10 @@ export function RecallsDatabase() {
   const [expandedId, setExpandedId] = useState(null);
   const [sortColumn, setSortColumn] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('desc');
-  const [showDuplicates, setShowDuplicates] = useState(false);
+  // view mode: 'all' | 'duplicates' | 'grouped'
+  const [viewMode, setViewMode] = useState('all');
+  // track which groups (by item number) are expanded in grouped mode
+  const [expandedGroups, setExpandedGroups] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAllRecalls, setShowAllRecalls] = useState(false);
 
@@ -219,8 +222,8 @@ export function RecallsDatabase() {
       aValue = new Date(a.created_at || 0).getTime();
       bValue = new Date(b.created_at || 0).getTime();
     } else if (sortColumn === 'fda_class') {
-      aValue = a.result?.recall_data?.recall_items?.fda_class || 'Pending Review';
-      bValue = b.result?.recall_data?.recall_items?.fda_class || 'Pending Review';
+      aValue = a.result?.recall_data?.recall_items?.[0]?.fda_class || 'Pending Review';
+      bValue = b.result?.recall_data?.recall_items?.[0]?.fda_class || 'Pending Review';
     }
 
     if (aValue === undefined || bValue === undefined) return 0;
@@ -243,6 +246,19 @@ export function RecallsDatabase() {
 
     return primarySort;
   });
+
+    // Build a frequency map of item codes (product codes) so we can filter duplicates
+    const getItemCode = (recall) =>
+      recall.result?.recall_data?.recall_items?.[0]?.product_code || 'Unknown';
+
+    const itemCounts = {};
+    sortedAndFilteredRecalls.forEach((r) => {
+      const item = getItemCode(r) || 'Unknown';
+      itemCounts[item] = (itemCounts[item] || 0) + 1;
+    });
+
+    // Data to render for flat view (all records)
+    const dataToRender = sortedAndFilteredRecalls;
 
   const SortHeader = ({ column, label }) => (
     <th
@@ -273,25 +289,220 @@ export function RecallsDatabase() {
     return map[c] || map['Pending'];
   };
 
-  const groupByItemNumber = (recalls) => {
+  const groupByItemCode = (recalls) => {
     const grouped = {};
     recalls.forEach((recall) => {
-      const itemNumber = recall.result?.recall_data?.recall_items?.item_number || 'Unknown';
-      if (!grouped[itemNumber]) {
-        grouped[itemNumber] = [];
+      const itemCode = recall.result?.recall_data?.recall_items?.[0]?.product_code || 'Unknown';
+      if (!grouped[itemCode]) {
+        grouped[itemCode] = [];
       }
-      grouped[itemNumber].push(recall);
+      grouped[itemCode].push(recall);
     });
     return grouped;
   };
 
-  const displayRecalls = showDuplicates 
-    ? Object.entries(groupByItemNumber(sortedAndFilteredRecalls)).map(([itemNumber, group]) => ({
-        itemNumber,
-        group: group.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
-        isGroup: true
-      }))
-    : sortedAndFilteredRecalls.map(recall => ({ recall, isGroup: false }));
+  const toggleGroup = (itemCode) => {
+    setExpandedGroups((prev) => ({ ...prev, [itemCode]: !prev[itemCode] }));
+  };
+
+  // Helper to render a single recall row (used in flat and grouped modes)
+  const renderRecallRow = (recall, key, indent = false) => (
+    <Fragment key={key}>
+      <tr className="border-b hover:bg-gray-50">
+        <td className={`px-4 py-3 font-mono text-sm ${indent ? 'pl-8' : ''}`}>
+          {recall.result?.recall_data?.recall_items[0]?.catalog_search?.item_number || '-'}
+        </td>
+        <td className="px-4 py-3">
+          {recall.result?.recall_data?.recall_items[0]?.manufacturer || '-'}
+        </td>
+        <td className="px-4 py-3">
+          {recall.result?.recall_data?.recall_items[0]?.product_code || '-'}
+        </td>
+        <td className="px-4 py-3">
+          {editingId === recall.id ? (
+            <div className="flex items-center gap-2">
+              <select
+                value={editingClassification}
+                onChange={(e) =>
+                  setEditingClassification(e.target.value)
+                }
+                className="border rounded px-2 py-1 text-sm"
+              >
+                {CLASSIFICATION_OPTIONS.map((opt) => (
+                  <option key={opt}>{opt}</option>
+                ))}
+              </select>
+              <button
+                onClick={() =>
+                  handleSaveClassification(recall.id)
+                }
+                disabled={updateLoading}
+                className="px-2 py-1 text-sm bg-blue-600 text-white rounded"
+              >
+                Save
+              </button>
+              <button
+                onClick={handleCancelEdit}
+                className="px-2 py-1 text-sm bg-gray-300 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <span
+              className={`whitespace-nowrap inline-block px-3 py-1 rounded-full text-xs font-semibold ${getClassificationColor(
+                recall.result?.recall_data?.recall_items?.[0]?.fda_class
+              )}`}
+            >
+              {recall.result?.recall_data?.recall_items?.[0]?.fda_class || 'Pending Review'}
+            </span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-sm text-gray-600">
+          {recall.created_at
+            ? new Date(
+                recall.created_at
+              ).toLocaleDateString()
+            : '-'}
+        </td>
+        <td className="px-4 py-3">
+          <select
+            value={recall.reviewed_at ? 'reviewed' : 'pending'}
+            onChange={(e) => {
+              if (e.target.value === 'reviewed' && !recall.reviewed_at) {
+                handleMarkReviewed(recall.id);
+              } else if (e.target.value === 'pending' && recall.reviewed_at) {
+                handleMarkPending(recall.id);
+              }
+            }}
+            className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
+              recall.reviewed_at
+                ? 'bg-green-100 text-green-700'
+                : 'bg-yellow-100 text-yellow-700'
+            }`}
+          >
+            <option value="pending">Pending</option>
+            <option value="reviewed">Reviewed</option>
+          </select>
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-2">
+            {editingId !== recall.id && (
+              <button
+                onClick={() =>
+                  handleEditClassification(recall)
+                }
+                className="p-2 hover:bg-blue-50 rounded"
+                title="Edit Classification"
+              >
+                <Edit2 className="h-4 w-4 text-blue-600" />
+              </button>
+            )}
+            <button
+              onClick={() =>
+                setExpandedId(
+                  expandedId === recall.id
+                    ? null
+                    : recall.id
+                )
+              }
+              className="p-2 hover:bg-gray-100 rounded"
+              title="View Details"
+            >
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${
+                  expandedId === recall.id
+                    ? 'rotate-180'
+                    : ''
+                }`}
+              />
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      {expandedId === recall.id && (
+        <tr className="bg-gray-50 border-b border-gray-200">
+          <td colSpan="7" className="py-4 px-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-semibold text-gray-700">Item Number:</span>
+                <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.catalog_search?.item_number || '-'}</p>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700">Lot Code(s):</span>
+                <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.lot_codes.join(', ') || '-'}</p>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700">Manufacturer:</span>
+                <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.manufacturer || '-'}</p>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700">Product Code:</span>
+                <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.product_code || '-'}</p>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700">FDA Class:</span>
+                <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.fda_class || '-'}</p>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700">File Type:</span>
+                <p className="text-gray-600">{recall.result?.filetype === 'scannedpdf' ? 'Scanned PDF' : (recall.result?.filetype === 'textpdf' ? 'Text PDF' : '-')}</p>
+              </div>
+
+              {recall.file_url && (
+                <div className="col-span-2">
+                  <span className="font-semibold">Recall PDF:</span>
+                  <div className="mt-1">
+                    <a
+                      href={recall.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      Open Document
+                    </a>
+                  </div>
+                </div>
+              )}
+              <div>
+                <span className="font-semibold text-gray-700">Created:</span>
+                <p className="text-gray-600">
+                  {recall.created_at
+                    ? new Date(recall.created_at).toLocaleString()
+                    : '-'}
+                </p>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700">Date Notification Received:</span>
+                <p className="text-gray-600">
+                  {recall.date_notification_received
+                    ? new Date(recall.date_notification_received).toLocaleString()
+                    : '-'}
+                </p>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700">Date Reviewed:</span>
+                <p className="text-gray-600">
+                  {recall.reviewed_at
+                    ? new Date(recall.reviewed_at).toLocaleString()
+                    : 'Not yet reviewed'}
+                </p>
+              </div>
+              {recall.result && (
+                <div className="col-span-2">
+                  <span className="font-semibold text-gray-700">Result:</span>
+                  <pre className="text-gray-600 mt-1 bg-white p-2 rounded border border-gray-200 text-xs overflow-auto max-h-40">
+                    {JSON.stringify(recall.result, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
+      )}
+    </Fragment>
+  );
 
   if (loading) {
     return (
@@ -347,9 +558,24 @@ export function RecallsDatabase() {
             />
           </div>
 
-          <p className="text-sm text-gray-600 mb-4">
-            Showing {filteredRecalls.length} of {recalls.length} recalls
-          </p>
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <p className="text-sm text-gray-600">
+              Showing {filteredRecalls.length} of {recalls.length} recalls
+            </p>
+            <div className="flex items-center gap-3">
+              <label className="inline-flex items-center text-sm text-gray-700">
+                <span className="mr-2">View:</span>
+                <select
+                  value={viewMode}
+                  onChange={(e) => setViewMode(e.target.value)}
+                  className="border rounded px-2 py-1 text-sm"
+                >
+                  <option value="all">All</option>
+                  <option value="grouped">Grouped duplicates</option>
+                </select>
+              </label>
+            </div>
+          </div>
 
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
@@ -366,204 +592,37 @@ export function RecallsDatabase() {
               </thead>
 
               <tbody>
-                {sortedAndFilteredRecalls.map((recall) => (
-                  <Fragment key={recall.id}>
-                    <tr className="border-b hover:bg-gray-50">
-                      <td className="px-4 py-3 font-mono text-sm">
-                        {recall.result?.recall_data?.recall_items[0]?.catalog_search?.item_number || '-'}
-                      </td>
-                      <td className="px-4 py-3">
-                        {recall.result?.recall_data?.recall_items[0]?.manufacturer || '-'}
-                      </td>
-                      <td className="px-4 py-3">
-                        {recall.result?.recall_data?.recall_items[0]?.product_code || '-'}
-                      </td>
-                      <td className="px-4 py-3">
-                        {editingId === recall.id ? (
-                          <div className="flex items-center gap-2">
-                            <select
-                              value={editingClassification}
-                              onChange={(e) =>
-                                setEditingClassification(e.target.value)
-                              }
-                              className="border rounded px-2 py-1 text-sm"
-                            >
-                              {CLASSIFICATION_OPTIONS.map((opt) => (
-                                <option key={opt}>{opt}</option>
-                              ))}
-                            </select>
-                            <button
-                              onClick={() =>
-                                handleSaveClassification(recall.id)
-                              }
-                              disabled={updateLoading}
-                              className="px-2 py-1 text-sm bg-blue-600 text-white rounded"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={handleCancelEdit}
-                              className="px-2 py-1 text-sm bg-gray-300 rounded"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <span
-                            className={`whitespace-nowrap inline-block px-3 py-1 rounded-full text-xs font-semibold ${getClassificationColor(
-                              recall.result?.recall_data?.recall_items?.fda_class
-                            )}`}
-                          >
-                            {recall.result?.recall_data?.recall_items?.fda_class || 'Pending Review'}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {recall.created_at
-                          ? new Date(
-                              recall.created_at
-                            ).toLocaleDateString()
-                          : '-'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={recall.reviewed_at ? 'reviewed' : 'pending'}
-                          onChange={(e) => {
-                            if (e.target.value === 'reviewed' && !recall.reviewed_at) {
-                              handleMarkReviewed(recall.id);
-                            } else if (e.target.value === 'pending' && recall.reviewed_at) {
-                              handleMarkPending(recall.id);
-                            }
-                          }}
-                          className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
-                            recall.reviewed_at
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-yellow-100 text-yellow-700'
-                          }`}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="reviewed">Reviewed</option>
-                        </select>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          {editingId !== recall.id && (
-                            <button
-                              onClick={() =>
-                                handleEditClassification(recall)
-                              }
-                              className="p-2 hover:bg-blue-50 rounded"
-                              title="Edit Classification"
-                            >
-                              <Edit2 className="h-4 w-4 text-blue-600" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() =>
-                              setExpandedId(
-                                expandedId === recall.id
-                                  ? null
-                                  : recall.id
-                              )
-                            }
-                            className="p-2 hover:bg-gray-100 rounded"
-                            title="View Details"
-                          >
-                            <ChevronDown
-                              className={`h-4 w-4 transition-transform ${
-                                expandedId === recall.id
-                                  ? 'rotate-180'
-                                  : ''
-                              }`}
-                            />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Expanded Details Row */}
-                        {expandedId === recall.id && (
-                          <tr className="bg-gray-50 border-b border-gray-200">
-                            <td colSpan="7" className="py-4 px-4">
-                              <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                  <span className="font-semibold text-gray-700">Item Number:</span>
-                                  <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.catalog_search?.item_number || '-'}</p>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">Lot Code(s):</span>
-                                  <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.lot_codes.join(', ') || '-'}</p>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">Manufacturer:</span>
-                                  <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.manufacturer || '-'}</p>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">Product Code:</span>
-                                  <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.product_code || '-'}</p>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">FDA Class:</span>
-                                  <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.fda_class || '-'}</p>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">File Type:</span>
-                                  <p className="text-gray-600">{recall.result?.filetype === 'scannedpdf' ? 'Scanned PDF' : (recall.result?.filetype === 'textpdf' ? 'Text PDF' : '-')}</p>
-                                </div>
-
-                                {recall.file_url && (
-                                  <div className="col-span-2">
-                                    <span className="font-semibold">Recall PDF:</span>
-                                    <div className="mt-1">
-                                      <a
-                                        href={recall.file_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 underline"
-                                      >
-                                        Open Document
-                                      </a>
-                                    </div>
-                                  </div>
-                                )}
-                                <div>
-                                  <span className="font-semibold text-gray-700">Created:</span>
-                                  <p className="text-gray-600">
-                                    {recall.created_at
-                                      ? new Date(recall.created_at).toLocaleString()
-                                      : '-'}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">Date Notification Received:</span>
-                                  <p className="text-gray-600">
-                                    {recall.date_notification_received
-                                      ? new Date(recall.date_notification_received).toLocaleString()
-                                      : '-'}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">Date Reviewed:</span>
-                                  <p className="text-gray-600">
-                                    {recall.reviewed_at
-                                      ? new Date(recall.reviewed_at).toLocaleString()
-                                      : 'Not yet reviewed'}
-                                  </p>
-                                </div>
-                                {recall.result && (
-                                  <div className="col-span-2">
-                                    <span className="font-semibold text-gray-700">Result:</span>
-                                    <pre className="text-gray-600 mt-1 bg-white p-2 rounded border border-gray-200 text-xs overflow-auto max-h-40">
-                                      {JSON.stringify(recall.result, null, 2)}
-                                    </pre>
-                                  </div>
-                                )}
-                              </div>
+                {viewMode === 'grouped' ? (
+                  // Grouped view: render group header rows and expandable child rows (only groups with 2+ items)
+                  Object.entries(groupByItemCode(sortedAndFilteredRecalls))
+                    .filter(([, group]) => group.length > 1)
+                    .map(([itemCode, group]) => {
+                      const sortedGroup = group.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                      const first = sortedGroup[0];
+                      const expanded = !!expandedGroups[itemCode];
+                      return (
+                        <Fragment key={`group-${itemCode}`}>
+                          <tr className="bg-gray-100 border-b">
+                            <td className="px-4 py-3 font-mono text-sm">{itemCode}</td>
+                            <td className="px-4 py-3">{first?.result?.recall_data?.recall_items[0]?.manufacturer || '-'}</td>
+                            <td className="px-4 py-3">{first?.result?.recall_data?.recall_items[0]?.product_code || '-'}</td>
+                            <td className="px-4 py-3">{`Group (${sortedGroup.length})`}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{first?.created_at ? new Date(first.created_at).toLocaleDateString() : '-'}</td>
+                            <td className="px-4 py-3">&nbsp;</td>
+                            <td className="px-4 py-3">
+                              <button onClick={() => toggleGroup(itemCode)} className="p-2 hover:bg-gray-200 rounded">
+                                {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </button>
                             </td>
                           </tr>
-                        )}
-                  </Fragment>
-                ))}
+                          {expanded && sortedGroup.map((recall) => renderRecallRow(recall, `child-${itemCode}-${recall.id}`, true))}
+                        </Fragment>
+                      );
+                    })
+                ) : (
+                  // Flat view (all or duplicates)
+                  dataToRender.map((recall) => renderRecallRow(recall, recall.id))
+                )}
               </tbody>
             </table>
           </div>
