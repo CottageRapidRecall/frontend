@@ -77,7 +77,7 @@ export function RecallsDatabase() {
   const handleEditClassification = (recall) => {
     setEditingId(recall.id);
     setEditingClassification(
-      recall.result?.fda_class || 'Pending'
+      recall.result?.recall_data?.recall_items[0]?.fda_class || 'Pending'
     );
   };
 
