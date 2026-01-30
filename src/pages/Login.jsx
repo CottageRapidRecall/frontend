@@ -68,21 +68,21 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-lime-700 to-slate-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-300 to-green-200 p-4">
       {/* Main Container - White Rounded Box */}
-      <div className="w-1/2 max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[550px]">
+      <div className="w-1/2 max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[550px]">
         <div className="w-full flex flex-col items-center justify-start px-6 sm:px- py-20">
           <img src={logo_long} alt="RapidRecall Logo" className="w-2/3"/>
-          <h1 className="text-base justify-center sm:text-l font-light text-slate-950 pb-3">
+          <h1 className="text-base justify-center sm:text-xl font-light text-slate-950 pb-3">
             Supply chain medical recalls in minutes.
           </h1>
           <div className="w-full max-w-sm">
             {/* Header */}
             <div className="text-center mb-3">
-              <h2 className="text-base sm:text-xl font-light text-slate-950 pt-5">
+              <h2 className="text-base sm:text-xl font-medium text-slate-950 pt-5">
                 Login to Dashboard
               </h2>
-              <p className="text-gray-600 text-sm sm:text-base">
+              <p className="text-gray-600 text-sm sm:text-base pb-3">
               </p>
             </div>
 
