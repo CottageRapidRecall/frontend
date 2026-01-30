@@ -606,10 +606,10 @@ export function RecallsDatabase() {
                       return (
                         <Fragment key={`group-${itemCode}`}>
                           <tr className="bg-gray-100 border-b">
-                            <td className="px-4 py-3 font-mono text-sm">{itemCode}</td>
+                            <td className="px-4 py-3 font-mono text-sm">{first?.result?.recall_data?.recall_items[0]?.catalog_search?.item_number || '-'}</td>
                             <td className="px-4 py-3">{first?.result?.recall_data?.recall_items[0]?.catalog_search?.description || '-'}</td>
-                            <td className="px-4 py-3">{first?.result?.recall_data?.recall_items[0]?.product_code || '-'}</td>
-                            <td className="px-4 py-3">{''}</td>
+                            <td className="px-4 py-3">{itemCode}</td>
+                            <td className="px-4 py-3">{`Group (${sortedGroup.length})`}</td>
                             <td className="px-4 py-3 text-sm text-gray-600">{first?.created_at ? new Date(first.created_at).toLocaleDateString() : '-'}</td>
                             <td className="px-4 py-3">&nbsp;</td>
                             <td className="px-4 py-3">
