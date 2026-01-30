@@ -185,7 +185,6 @@ export function RecallsDatabase() {
     }
   };
 
-  // TODO: Added time filter for sake of demo, remove later
   const filteredRecalls = recalls.filter((r) => {
     const s = searchTerm.toLowerCase();
     return (
