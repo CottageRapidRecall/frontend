@@ -186,12 +186,12 @@ export function RecallsDatabase() {
   };
 
   // TODO: Added time filter for sake of demo, remove later
-  const recentRecalls = recalls.filter((r) => r.date_notification_received > "2026-01-25T0:0:0+00:00")
-  const filteredRecalls = recentRecalls.filter((r) => {
+  const filteredRecalls = recalls.filter((r) => {
     const s = searchTerm.toLowerCase();
     return (
       r.id?.toLowerCase().includes(s) ||
       r.result?.recall_data?.recall_items[0]?.catalog_search?.item_number?.toLowerCase().includes(s) ||
+      r.result?.recall_data?.recall_items[0]?.catalog_search?.description?.toLowerCase().includes(s) ||
       r.result?.recall_data?.recall_items[0]?.manufacturer?.toLowerCase().includes(s) ||
       r.result?.recall_data?.recall_items[0]?.product_name?.toLowerCase().includes(s) ||
       r.result?.recall_data?.recall_items[0]?.product_code?.toLowerCase().includes(s) ||
@@ -313,7 +313,7 @@ export function RecallsDatabase() {
           {recall.result?.recall_data?.recall_items[0]?.catalog_search?.item_number || '-'}
         </td>
         <td className="px-4 py-3">
-          {recall.result?.recall_data?.recall_items[0]?.manufacturer || '-'}
+          {recall.result?.recall_data?.recall_items[0]?.catalog_search?.description || '-'}
         </td>
         <td className="px-4 py-3">
           {recall.result?.recall_data?.recall_items[0]?.product_code || '-'}
@@ -438,6 +438,10 @@ export function RecallsDatabase() {
                 <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.manufacturer || '-'}</p>
               </div>
               <div>
+                <span className="font-semibold text-gray-700">Item Description:</span>
+                <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.catalog_search?.description || '-'}</p>
+              </div>
+              <div>
                 <span className="font-semibold text-gray-700">Product Code:</span>
                 <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.product_code || '-'}</p>
               </div>
@@ -553,7 +557,7 @@ export function RecallsDatabase() {
             <input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by ID, item number, product name, manufacturer, class, or product code..."
+              placeholder="Search by internal item number, item description, manufacturer, class, or product code..."
               className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -581,8 +585,8 @@ export function RecallsDatabase() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left px-4 py-3">Item Number</th>
-                  <th className="text-left px-4 py-3">Manufacturer</th>
+                  <th className="text-left px-4 py-3">Internal Item No.</th>
+                  <th className="text-left px-4 py-3">Item Description</th>
                   <th className="text-left px-4 py-3">Product Code</th>
                   <SortHeader column="fda_class" label="FDA Class" />
                   <SortHeader column="created_at" label="Created" />
@@ -604,9 +608,9 @@ export function RecallsDatabase() {
                         <Fragment key={`group-${itemCode}`}>
                           <tr className="bg-gray-100 border-b">
                             <td className="px-4 py-3 font-mono text-sm">{itemCode}</td>
-                            <td className="px-4 py-3">{first?.result?.recall_data?.recall_items[0]?.manufacturer || '-'}</td>
+                            <td className="px-4 py-3">{first?.result?.recall_data?.recall_items[0]?.catalog_search?.description || '-'}</td>
                             <td className="px-4 py-3">{first?.result?.recall_data?.recall_items[0]?.product_code || '-'}</td>
-                            <td className="px-4 py-3">{`Group (${sortedGroup.length})`}</td>
+                            <td className="px-4 py-3">{''}</td>
                             <td className="px-4 py-3 text-sm text-gray-600">{first?.created_at ? new Date(first.created_at).toLocaleDateString() : '-'}</td>
                             <td className="px-4 py-3">&nbsp;</td>
                             <td className="px-4 py-3">
