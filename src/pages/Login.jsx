@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 import { useNavigate } from 'react-router-dom';
+import logo_long from '../assets/rapidrecall_logo_name.svg'
 
-const BACKEND_URL = 'https://rapidrecall-production.up.railway.app' || 'http://localhost:8080';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8080';
 
 export function Login() {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ export function Login() {
       {/* Main Container - White Rounded Box */}
       <div className="w-1/2 max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[550px]">
         <div className="w-full flex flex-col items-center justify-start px-6 sm:px- py-20">
-          <img src="/images/rapidrecall_logo_name.svg" alt="RapidRecall Logo" className="w-2/3"/>
+          <img src={logo_long} alt="RapidRecall Logo" className="w-2/3"/>
           <h1 className="text-base justify-center sm:text-l font-light text-slate-950 pb-3">
             Supply chain medical recalls in minutes.
           </h1>
