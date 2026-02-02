@@ -24,9 +24,7 @@ export function RecallsDatabase() {
   const [expandedId, setExpandedId] = useState(null);
   const [sortColumn, setSortColumn] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('desc');
-  // view mode: 'all' | 'duplicates' | 'grouped'
   const [viewMode, setViewMode] = useState('all');
-  // track which groups (by item number) are expanded in grouped mode
   const [expandedGroups, setExpandedGroups] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAllRecalls, setShowAllRecalls] = useState(false);
@@ -259,7 +257,7 @@ export function RecallsDatabase() {
     return primarySort;
   });
 
-    // Build a frequency map of item codes (product codes) so we can filter duplicates
+    // Frequency map of item codes (product codes) to filter duplicates
     const getItemCode = (recall) =>
       recall.result?.recall_data?.recall_items?.[0]?.product_code || 'Unknown';
 
@@ -269,7 +267,6 @@ export function RecallsDatabase() {
       itemCounts[item] = (itemCounts[item] || 0) + 1;
     });
 
-    // Data to render for flat view (all records)
     const dataToRender = sortedAndFilteredRecalls;
 
   const SortHeader = ({ column, label }) => (
@@ -317,7 +314,6 @@ export function RecallsDatabase() {
     setExpandedGroups((prev) => ({ ...prev, [itemCode]: !prev[itemCode] }));
   };
 
-  // Helper to render a single recall row (used in flat and grouped modes)
   const renderRecallRow = (recall, key, indent = false) => {
     // Safely get recall item (handle cases where structure may be missing)
     const recallItem = recall?.result?.recall_data?.recall_items?.[0];
