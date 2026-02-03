@@ -211,7 +211,9 @@ export function AdminDashboard() {
               </div>
             ) : (
               <div className="space-y-3">
-                {actionItems.map((recall) => (
+                {actionItems.map((recall) => {
+                  const recallItem = recall?.result?.recall_data?.recall_items?.[0];
+                  return (
                   <div key={recall.id} className="border rounded-lg overflow-hidden">
                     <button
                       onClick={() =>
@@ -228,17 +230,17 @@ export function AdminDashboard() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
                             className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getClassificationColor(
-                              recall.result?.recall_data?.recall_items[0]?.fda_class
+                              recallItem?.fda_class
                             )}`}
                           >
-                            {recall.result?.recall_data?.recall_items[0]?.fda_class || 'Pending'}
+                            {recallItem?.fda_class || 'Pending'}
                           </span>
                           <span className="font-medium text-gray-900 truncate">
-                            {recall.result?.recall_data?.recall_items[0]?.product_description || recall.id}
+                            {recallItem?.product_description || recall.id}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 truncate">
-                          {recall.result?.recall_data?.recall_items[0]?.manufacturer || 'Unknown manufacturer'}
+                          {recallItem?.manufacturer || 'Unknown manufacturer'}
                         </p>
                       </div>
                       <span className="text-xs text-gray-400 flex-shrink-0">
@@ -251,23 +253,23 @@ export function AdminDashboard() {
                         <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                           <div>
                             <span className="font-semibold text-gray-700">Item Number:</span>
-                            <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.catalog_search?.item_number || '-'}</p>
+                            <p className="text-gray-600">{recallItem?.catalog_search?.item_number || '-'}</p>
                           </div>
                           <div>
                             <span className="font-semibold text-gray-700">Lot Code(s):</span>
-                            <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.lot_codes.join(', ') || '-'}</p>
+                            <p className="text-gray-600">{recallItem?.lot_codes?.join(', ') || '-'}</p>
                           </div>
                           <div>
                             <span className="font-semibold text-gray-700">Manufacturer:</span>
-                            <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.manufacturer || '-'}</p>
+                            <p className="text-gray-600">{recallItem?.manufacturer || '-'}</p>
                           </div>
                           <div>
                             <span className="font-semibold text-gray-700">Product Code:</span>
-                            <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.product_code || '-'}</p>
+                            <p className="text-gray-600">{recallItem?.product_code || '-'}</p>
                           </div>
                           <div>
                             <span className="font-semibold text-gray-700">FDA Class:</span>
-                            <p className="text-gray-600">{recall.result?.recall_data?.recall_items[0]?.fda_class || '-'}</p>
+                            <p className="text-gray-600">{recallItem?.fda_class || '-'}</p>
                           </div>
                           <div>
                             <span className="font-semibold text-gray-700">Date Received:</span>
@@ -287,7 +289,8 @@ export function AdminDashboard() {
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -312,7 +315,9 @@ export function AdminDashboard() {
             </div>
           ) : (
             <div className="space-y-3">
-              {recentRecalls.map((recall) => (
+              {recentRecalls.map((recall) => {
+                const recallItem = recall?.result?.recall_data?.recall_items?.[0];
+                return (
                 <div
                   key={recall.id}
                   className="flex items-center gap-3 p-3 border rounded-lg"
@@ -320,20 +325,20 @@ export function AdminDashboard() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-900 truncate">
-                        {recall.result?.recall_data?.recall_items[0]?.product_description || recall.id}
+                        {recallItem?.product_description || recall.id}
                       </span>
-                      {recall.result?.recall_data?.recall_items[0]?.fda_class && (
+                      {recallItem?.fda_class && (
                         <span
                           className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getClassificationColor(
-                            recall.result?.recall_data?.recall_items[0]?.fda_class
+                            recallItem?.fda_class
                           )}`}
                         >
-                          {recall.result?.recall_data?.recall_items[0]?.fda_class}
+                          {recallItem?.fda_class}
                         </span>
                       )}
                     </div>
                     <p className="text-sm text-gray-600 truncate">
-                      {recall.result?.recall_data?.recall_items[0]?.manufacturer || 'Processing...'}
+                      {recallItem?.manufacturer || 'Processing...'}
                     </p>
                   </div>
                   <span className="text-xs text-gray-400 flex-shrink-0">
@@ -360,7 +365,8 @@ export function AdminDashboard() {
                     <option value="reviewed">Reviewed</option>
                   </select>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
