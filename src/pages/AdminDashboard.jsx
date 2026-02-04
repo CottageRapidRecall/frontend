@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
 import { Activity, FileText, AlertCircle, CheckCircle, Users, Settings, Square, CheckSquare, RotateCcw, ChevronDown } from 'lucide-react';
 import { getFreshIdToken } from '../lib/tokenManager';
@@ -18,6 +19,7 @@ const getClassificationColor = (c) => {
 };
 
 export function AdminDashboard() {
+  const navigate = useNavigate();
   const [recalls, setRecalls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -336,7 +338,8 @@ export function AdminDashboard() {
                 return (
                 <div
                   key={recall.id}
-                  className="flex items-center gap-3 p-3 border rounded-lg"
+                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/admin/recalls?expand=${recall.id}`)}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -364,6 +367,7 @@ export function AdminDashboard() {
                   </span>
                   <select
                     value={recall.reviewed_at ? 'reviewed' : 'pending'}
+                    onClick={(e) => e.stopPropagation()}
                     onChange={(e) => {
                       if (e.target.value === 'reviewed' && !recall.reviewed_at) {
                         handleMarkReviewed(recall.id);
