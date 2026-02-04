@@ -101,9 +101,8 @@ export function Documents({ user }) {
                   <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                   <label htmlFor="file-upload" className="cursor-pointer">
                     <span className="text-blue-600 hover:text-blue-700 font-medium">
-                      Choose a file
+                      Choose a PDF or Image File
                     </span>
-                    <span className="text-gray-600"> or drag and drop</span>
                     <input
                       id="file-upload"
                       type="file"
@@ -112,7 +111,6 @@ export function Documents({ user }) {
                       className="hidden"
                     />
                   </label>
-                  <p className="text-sm text-gray-500 mt-2">PDF or image files</p>
                 </div>
 
                 {/* Selected File Info */}
