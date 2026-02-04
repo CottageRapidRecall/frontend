@@ -300,12 +300,20 @@ export function AdminDashboard() {
                             </p>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleMarkReviewed(recall.id)}
-                          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                        >
-                          Mark as Reviewed
-                        </button>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => handleMarkReviewed(recall.id)}
+                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                          >
+                            Mark as Reviewed
+                          </button>
+                          <button
+                            onClick={() => navigate(`/admin/recalls?expand=${recall.id}`)}
+                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                          >
+                            View Details
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
