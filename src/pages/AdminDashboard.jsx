@@ -131,7 +131,7 @@ export function AdminDashboard() {
   // Recent recalls: last 5 recalls
   const recentRecalls = [...recalls]
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, 5);
+    .slice(0, 10);
 
   // Stats
   const totalRecalls = recalls.length;
