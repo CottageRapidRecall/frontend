@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
-import { Activity, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { Activity, FileText, AlertCircle, CheckCircle, Upload } from 'lucide-react';
 import { getFreshIdToken } from '../lib/tokenManager';
 
 const BACKEND_URL =
@@ -67,7 +67,7 @@ export function Dashboard() {
     <div className="p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome to RapidRecall</p>
+        <p className="text-gray-600 mt-2">Welcome to RapidRecall SC!</p>
       </div>
 
       {error && (
@@ -119,6 +119,14 @@ export function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <button
+        onClick={() => navigate('/documents')}
+        className="w-full flex items-center justify-center gap-2 px-4 py-5 mb-6 bg-blue-600 text-white text-lg font-medium rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        <Upload className="h-5 w-5" />
+        Upload Recall
+      </button>
 
       <Card>
         <CardHeader>
