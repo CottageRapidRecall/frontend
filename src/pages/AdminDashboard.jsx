@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
 import { Activity, FileText, AlertCircle, CheckCircle, Users, Settings, Square, CheckSquare, RotateCcw, ChevronDown } from 'lucide-react';
 import { getFreshIdToken } from '../lib/tokenManager';
@@ -18,13 +19,16 @@ const getClassificationColor = (c) => {
 };
 
 export function AdminDashboard() {
+  const navigate = useNavigate();
   const [recalls, setRecalls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedActionId, setExpandedActionId] = useState(null);
+  const [totalUsers, setTotalUsers] = useState(0);
 
   useEffect(() => {
     fetchRecalls();
+    fetchUsers();
   }, []);
 
   const fetchRecalls = async () => {
@@ -54,6 +58,21 @@ export function AdminDashboard() {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const idToken = await getFreshIdToken();
+      if (!idToken) return;
+      const res = await fetch(`${BACKEND_URL}/admin/users`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setTotalUsers(Array.isArray(data.users) ? data.users.length : 0);
+    } catch (err) {
+      // silently fail - users count is not critical
+    }
+  };
+
   const handleMarkReviewed = async (recallId) => {
     try {
       const idToken = await getFreshIdToken();
@@ -71,7 +90,7 @@ export function AdminDashboard() {
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, reviewed_at: new Date().toISOString() }
+            ? { ...r, reviewed_time: new Date().toISOString() }
             : r
         )
       );
@@ -97,7 +116,7 @@ export function AdminDashboard() {
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, reviewed_at: null }
+            ? { ...r, reviewed_time: null }
             : r
         )
       );
@@ -108,18 +127,18 @@ export function AdminDashboard() {
 
   // Action items: all recalls that haven't been reviewed yet
   const actionItems = recalls.filter(
-    (r) => !r.reviewed_at 
+    (r) => !r.reviewed_time 
   );
 
   // Recent recalls: last 5 recalls
   const recentRecalls = [...recalls]
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, 5);
+    .slice(0, 10);
 
   // Stats
   const totalRecalls = recalls.length;
   const pending = actionItems.length;
-  const reviewed = recalls.filter((r) => r.reviewed_at).length;
+  const reviewed = recalls.filter((r) => r.reviewed_time).length;
 
   return (
     <div className="p-8">
@@ -140,7 +159,7 @@ export function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">0</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{totalUsers}</p>
               </div>
               <div className="p-3 bg-purple-100 rounded-full">
                 <Users className="h-6 w-6 text-purple-600" />
@@ -192,8 +211,9 @@ export function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Action Items */}
-      <div className="mb-6">
+      {/* Action Items and Recent Recalls side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Action Items */}
         <Card>
           <CardHeader>
             <CardTitle>Action Items ({actionItems.length} pending)</CardTitle>
@@ -280,12 +300,20 @@ export function AdminDashboard() {
                             </p>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleMarkReviewed(recall.id)}
-                          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                        >
-                          Mark as Reviewed
-                        </button>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => handleMarkReviewed(recall.id)}
+                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                          >
+                            Mark as Reviewed
+                          </button>
+                          <button
+                            onClick={() => navigate(`/admin/recalls?expand=${recall.id}`)}
+                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                          >
+                            View Details
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -295,11 +323,9 @@ export function AdminDashboard() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-
-      {/* Recent Recalls - full width below */}
-      <Card>
+        {/* Recent Recalls */}
+        <Card>
         <CardHeader>
           <CardTitle>Recent Recalls</CardTitle>
         </CardHeader>
@@ -320,7 +346,8 @@ export function AdminDashboard() {
                 return (
                 <div
                   key={recall.id}
-                  className="flex items-center gap-3 p-3 border rounded-lg"
+                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/admin/recalls?expand=${recall.id}`)}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -347,16 +374,17 @@ export function AdminDashboard() {
                       : '-'}
                   </span>
                   <select
-                    value={recall.reviewed_at ? 'reviewed' : 'pending'}
+                    value={recall.reviewed_time ? 'reviewed' : 'pending'}
+                    onClick={(e) => e.stopPropagation()}
                     onChange={(e) => {
-                      if (e.target.value === 'reviewed' && !recall.reviewed_at) {
+                      if (e.target.value === 'reviewed' && !recall.reviewed_time) {
                         handleMarkReviewed(recall.id);
-                      } else if (e.target.value === 'pending' && recall.reviewed_at) {
+                      } else if (e.target.value === 'pending' && recall.reviewed_time) {
                         handleMarkPending(recall.id);
                       }
                     }}
                     className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
-                      recall.reviewed_at
+                      recall.reviewed_time
                         ? 'bg-green-100 text-green-700'
                         : 'bg-yellow-100 text-yellow-700'
                     }`}
@@ -370,7 +398,8 @@ export function AdminDashboard() {
             </div>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

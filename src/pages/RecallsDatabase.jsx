@@ -1,4 +1,5 @@
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
 import { Search, Edit2, ChevronDown, ChevronUp, RotateCcw, CheckSquare, Square } from 'lucide-react';
 import { getFreshIdToken } from '../lib/tokenManager';
@@ -13,7 +14,8 @@ const CLASSIFICATION_OPTIONS = [
   'Not Applicable',
 ];
 
-export function RecallsDatabase() {
+export function RecallsDatabase({ userRole }) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [recalls, setRecalls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,40 +23,19 @@ export function RecallsDatabase() {
   const [editingId, setEditingId] = useState(null);
   const [editingClassification, setEditingClassification] = useState('');
   const [updateLoading, setUpdateLoading] = useState(false);
-  const [expandedId, setExpandedId] = useState(null);
+  const [expandedId, setExpandedId] = useState(searchParams.get('expand'));
   const [sortColumn, setSortColumn] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('desc');
   const [viewMode, setViewMode] = useState('all');
   const [expandedGroups, setExpandedGroups] = useState({});
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showAllRecalls, setShowAllRecalls] = useState(false);
-
-  useEffect(() => {
-    checkUserRole();
-  }, []);
+  const isAdmin = userRole === 'admin';
+  const [showAllRecalls, setShowAllRecalls] = useState(isAdmin);
 
   useEffect(() => {
     fetchRecalls();
-  }, [showAllRecalls]);
+  }, []);
 
-  const checkUserRole = async () => {
-    try {
-      const idToken = await getFreshIdToken();
-      // Try to fetch admin recalls to check if user is admin
-      const res = await fetch(`${BACKEND_URL}/admin/recalls`, {
-        headers: { Authorization: `Bearer ${idToken}` },
-      });
-      setIsAdmin(res.ok);
-      // Set initial state to show all recalls only if admin
-      if (!res.ok) {
-        setShowAllRecalls(false);
-      }
-    } catch (err) {
-      setIsAdmin(false);
-      setShowAllRecalls(false);
-    }
-  };
-
+  // Re-fetch when toggling between All/My Recalls
   const fetchRecalls = async () => {
     try {
       setLoading(true);
@@ -66,20 +47,17 @@ export function RecallsDatabase() {
 
       if (!res.ok) throw new Error('Failed to fetch recalls');
       const data = await res.json();
-      
-      // Deduplication: keep only the first occurrence of each recall
+
       const seenIds = new Set();
-      const uniqueRecalls = Array.isArray(data.recalls) 
+      const uniqueRecalls = Array.isArray(data.recalls)
         ? data.recalls.filter((recall) => {
             const key = recall.file_url || recall.id;
-            if (seenIds.has(key)) {
-              return false;
-            }
+            if (seenIds.has(key)) return false;
             seenIds.add(key);
             return true;
           })
         : [];
-      
+
       setRecalls(uniqueRecalls);
     } catch (err) {
       setError(err.message);
@@ -87,6 +65,28 @@ export function RecallsDatabase() {
       setLoading(false);
     }
   };
+
+  // Re-fetch when toggling All/My Recalls (skip initial mount)
+  const didMount = useRef(false);
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true;
+      return;
+    }
+    fetchRecalls();
+  }, [showAllRecalls]);
+
+  // Scroll to expanded recall when coming from dashboard
+  useEffect(() => {
+    if (expandedId && !loading) {
+      const el = document.getElementById(`recall-${expandedId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      searchParams.delete('expand');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [expandedId, loading]);
 
   const handleEditClassification = (recall) => {
     setEditingId(recall.id);
@@ -161,7 +161,7 @@ export function RecallsDatabase() {
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, reviewed_at: new Date().toISOString() }
+            ? { ...r, reviewed_time: new Date().toISOString() }
             : r
         )
       );
@@ -187,7 +187,7 @@ export function RecallsDatabase() {
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, reviewed_at: null }
+            ? { ...r, reviewed_time: null }
             : r
         )
       );
@@ -320,9 +320,10 @@ export function RecallsDatabase() {
     
     return (
     <Fragment key={key}>
-      <tr 
+      <tr
+        id={`recall-${recall.id}`}
         onClick={() => setExpandedId(expandedId === recall.id ? null : recall.id)}
-        className="border-b hover:bg-gray-50 cursor-pointer"
+        className={`border-b hover:bg-gray-50 cursor-pointer ${expandedId === recall.id ? 'bg-blue-50' : ''}`}
       >
         <td className={`px-4 py-3 font-mono text-sm ${indent ? 'pl-8' : ''}`}>
           {recallItem?.catalog_search?.item_number || '-'}
@@ -386,29 +387,41 @@ export function RecallsDatabase() {
             : '-'}
         </td>
         <td className="px-4 py-3">
-          <select
-            value={recall.reviewed_at ? 'reviewed' : 'pending'}
-            onChange={(e) => {
-              if (e.target.value === 'reviewed' && !recall.reviewed_at) {
-                handleMarkReviewed(recall.id);
-              } else if (e.target.value === 'pending' && recall.reviewed_at) {
-                handleMarkPending(recall.id);
-              }
-            }}
-            onClick={(e) => e.stopPropagation()}
-            className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
-              recall.reviewed_at
-                ? 'bg-green-100 text-green-700'
-                : 'bg-yellow-100 text-yellow-700'
-            }`}
-          >
-            <option value="pending">Pending</option>
-            <option value="reviewed">Reviewed</option>
-          </select>
+          {isAdmin ? (
+            <select
+              value={recall.reviewed_time ? 'reviewed' : 'pending'}
+              onChange={(e) => {
+                if (e.target.value === 'reviewed' && !recall.reviewed_time) {
+                  handleMarkReviewed(recall.id);
+                } else if (e.target.value === 'pending' && recall.reviewed_time) {
+                  handleMarkPending(recall.id);
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
+                recall.reviewed_time
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}
+            >
+              <option value="pending">Pending</option>
+              <option value="reviewed">Reviewed</option>
+            </select>
+          ) : (
+            <span
+              className={`px-3 py-1 text-xs font-medium rounded-full ${
+                recall.reviewed_time
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}
+            >
+              {recall.reviewed_time ? 'Reviewed' : 'Pending'}
+            </span>
+          )}
         </td>
         <td className="px-4 py-3">
           <div className="flex items-center gap-2">
-            {editingId !== recall.id && (
+            {isAdmin && editingId !== recall.id && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -511,8 +524,8 @@ export function RecallsDatabase() {
               <div>
                 <span className="font-semibold text-gray-700">Date Reviewed:</span>
                 <p className="text-gray-600">
-                  {recall.reviewed_at
-                    ? new Date(recall.reviewed_at).toLocaleString()
+                  {recall.reviewed_time
+                    ? new Date(recall.reviewed_time).toLocaleString()
                     : 'Not yet reviewed'}
                 </p>
               </div>
@@ -550,16 +563,28 @@ export function RecallsDatabase() {
           </p>
         </div>
         {isAdmin && (
-          <button
-            onClick={() => setShowAllRecalls(!showAllRecalls)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              showAllRecalls
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-            }`}
-          >
-            {showAllRecalls ? 'My Recalls' : 'All Recalls'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowAllRecalls(true)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                showAllRecalls
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+              }`}
+            >
+              All Recalls
+            </button>
+            <button
+              onClick={() => setShowAllRecalls(false)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                !showAllRecalls
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+              }`}
+            >
+              My Recalls
+            </button>
+          </div>
         )}
       </div>
 

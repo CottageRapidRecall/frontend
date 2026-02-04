@@ -85,8 +85,8 @@ export function Documents({ user }) {
     <div className="p-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Documents</h1>
-        <p className="text-gray-600 mt-2">Upload and process recall documents</p>
+        <h1 className="text-3xl font-bold text-gray-900">Upload Recall Document</h1>
+        <p className="text-gray-600 mt-2">Click below to upload and process recall documents</p>
       </div>
 
       {/* Main Content Grid */}
@@ -94,9 +94,6 @@ export function Documents({ user }) {
         {/* Upload Section */}
         <div className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Upload Recall Document</CardTitle>
-            </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {/* File Input */}
@@ -104,9 +101,8 @@ export function Documents({ user }) {
                   <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                   <label htmlFor="file-upload" className="cursor-pointer">
                     <span className="text-blue-600 hover:text-blue-700 font-medium">
-                      Choose a file
+                      Choose a PDF or Image File
                     </span>
-                    <span className="text-gray-600"> or drag and drop</span>
                     <input
                       id="file-upload"
                       type="file"
@@ -115,7 +111,6 @@ export function Documents({ user }) {
                       className="hidden"
                     />
                   </label>
-                  <p className="text-sm text-gray-500 mt-2">PDF or image files</p>
                 </div>
 
                 {/* Selected File Info */}

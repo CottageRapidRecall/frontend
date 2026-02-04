@@ -4,7 +4,7 @@ import { cn } from '../lib/utils';
 
 const baseNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Documents', href: '/documents', icon: FileText },
+  { name: 'Upload Recall', href: '/documents', icon: FileText },
   // { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -13,8 +13,8 @@ const userNavigation = [
 ];
 
 const adminNavigation = [
-  { name: 'Manage Users', href: '/admin/users', icon: Users },
   { name: 'Manage Recalls', href: '/admin/recalls', icon: Database },
+  { name: 'Manage Users', href: '/admin/users', icon: Users },
 ];
 
 export function Sidebar({ user, userRole, onSignOut }) {

@@ -148,12 +148,12 @@ function AppContent() {
             element={userRole === 'admin' ? <AdminPanel /> : <Navigate to="/" replace />} 
           />
           <Route 
-            path="/admin/recalls" 
-            element={userRole === 'admin' ? <RecallsDatabase /> : <Navigate to="/" replace />} 
+            path="/admin/recalls"
+            element={userRole === 'admin' ? <RecallsDatabase userRole="admin" /> : <Navigate to="/" replace />}
           />
-          <Route 
-            path="/my-recalls" 
-            element={userRole !== 'admin' ? <RecallsDatabase /> : <Navigate to="/admin/recalls" replace />} 
+          <Route
+            path="/my-recalls"
+            element={userRole !== 'admin' ? <RecallsDatabase userRole="user" /> : <Navigate to="/admin/recalls" replace />} 
           />
           <Route path="/documents" element={<Documents user={user} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
