@@ -85,8 +85,8 @@ export function Documents({ user }) {
     <div className="p-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Documents</h1>
-        <p className="text-gray-600 mt-2">Upload and process recall documents</p>
+        <h1 className="text-3xl font-bold text-gray-900">Upload Recall Document</h1>
+        <p className="text-gray-600 mt-2">Click below to upload and process recall documents</p>
       </div>
 
       {/* Main Content Grid */}
@@ -94,9 +94,6 @@ export function Documents({ user }) {
         {/* Upload Section */}
         <div className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Upload Recall Document</CardTitle>
-            </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {/* File Input */}
