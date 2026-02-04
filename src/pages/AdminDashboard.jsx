@@ -90,7 +90,7 @@ export function AdminDashboard() {
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, reviewed_at: new Date().toISOString() }
+            ? { ...r, reviewed_time: new Date().toISOString() }
             : r
         )
       );
@@ -116,7 +116,7 @@ export function AdminDashboard() {
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, reviewed_at: null }
+            ? { ...r, reviewed_time: null }
             : r
         )
       );
@@ -127,7 +127,7 @@ export function AdminDashboard() {
 
   // Action items: all recalls that haven't been reviewed yet
   const actionItems = recalls.filter(
-    (r) => !r.reviewed_at 
+    (r) => !r.reviewed_time 
   );
 
   // Recent recalls: last 5 recalls
@@ -138,7 +138,7 @@ export function AdminDashboard() {
   // Stats
   const totalRecalls = recalls.length;
   const pending = actionItems.length;
-  const reviewed = recalls.filter((r) => r.reviewed_at).length;
+  const reviewed = recalls.filter((r) => r.reviewed_time).length;
 
   return (
     <div className="p-8">
@@ -374,17 +374,17 @@ export function AdminDashboard() {
                       : '-'}
                   </span>
                   <select
-                    value={recall.reviewed_at ? 'reviewed' : 'pending'}
+                    value={recall.reviewed_time ? 'reviewed' : 'pending'}
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => {
-                      if (e.target.value === 'reviewed' && !recall.reviewed_at) {
+                      if (e.target.value === 'reviewed' && !recall.reviewed_time) {
                         handleMarkReviewed(recall.id);
-                      } else if (e.target.value === 'pending' && recall.reviewed_at) {
+                      } else if (e.target.value === 'pending' && recall.reviewed_time) {
                         handleMarkPending(recall.id);
                       }
                     }}
                     className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
-                      recall.reviewed_at
+                      recall.reviewed_time
                         ? 'bg-green-100 text-green-700'
                         : 'bg-yellow-100 text-yellow-700'
                     }`}

@@ -161,7 +161,7 @@ export function RecallsDatabase({ userRole }) {
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, reviewed_at: new Date().toISOString() }
+            ? { ...r, reviewed_time: new Date().toISOString() }
             : r
         )
       );
@@ -187,7 +187,7 @@ export function RecallsDatabase({ userRole }) {
       setRecalls((prev) =>
         prev.map((r) =>
           r.id === recallId
-            ? { ...r, reviewed_at: null }
+            ? { ...r, reviewed_time: null }
             : r
         )
       );
@@ -388,17 +388,17 @@ export function RecallsDatabase({ userRole }) {
         </td>
         <td className="px-4 py-3">
           <select
-            value={recall.reviewed_at ? 'reviewed' : 'pending'}
+            value={recall.reviewed_time ? 'reviewed' : 'pending'}
             onChange={(e) => {
-              if (e.target.value === 'reviewed' && !recall.reviewed_at) {
+              if (e.target.value === 'reviewed' && !recall.reviewed_time) {
                 handleMarkReviewed(recall.id);
-              } else if (e.target.value === 'pending' && recall.reviewed_at) {
+              } else if (e.target.value === 'pending' && recall.reviewed_time) {
                 handleMarkPending(recall.id);
               }
             }}
             onClick={(e) => e.stopPropagation()}
             className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
-              recall.reviewed_at
+              recall.reviewed_time
                 ? 'bg-green-100 text-green-700'
                 : 'bg-yellow-100 text-yellow-700'
             }`}
@@ -512,8 +512,8 @@ export function RecallsDatabase({ userRole }) {
               <div>
                 <span className="font-semibold text-gray-700">Date Reviewed:</span>
                 <p className="text-gray-600">
-                  {recall.reviewed_at
-                    ? new Date(recall.reviewed_at).toLocaleString()
+                  {recall.reviewed_time
+                    ? new Date(recall.reviewed_time).toLocaleString()
                     : 'Not yet reviewed'}
                 </p>
               </div>
