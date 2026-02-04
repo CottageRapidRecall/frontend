@@ -387,29 +387,41 @@ export function RecallsDatabase({ userRole }) {
             : '-'}
         </td>
         <td className="px-4 py-3">
-          <select
-            value={recall.reviewed_time ? 'reviewed' : 'pending'}
-            onChange={(e) => {
-              if (e.target.value === 'reviewed' && !recall.reviewed_time) {
-                handleMarkReviewed(recall.id);
-              } else if (e.target.value === 'pending' && recall.reviewed_time) {
-                handleMarkPending(recall.id);
-              }
-            }}
-            onClick={(e) => e.stopPropagation()}
-            className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
-              recall.reviewed_time
-                ? 'bg-green-100 text-green-700'
-                : 'bg-yellow-100 text-yellow-700'
-            }`}
-          >
-            <option value="pending">Pending</option>
-            <option value="reviewed">Reviewed</option>
-          </select>
+          {isAdmin ? (
+            <select
+              value={recall.reviewed_time ? 'reviewed' : 'pending'}
+              onChange={(e) => {
+                if (e.target.value === 'reviewed' && !recall.reviewed_time) {
+                  handleMarkReviewed(recall.id);
+                } else if (e.target.value === 'pending' && recall.reviewed_time) {
+                  handleMarkPending(recall.id);
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
+                recall.reviewed_time
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}
+            >
+              <option value="pending">Pending</option>
+              <option value="reviewed">Reviewed</option>
+            </select>
+          ) : (
+            <span
+              className={`px-3 py-1 text-xs font-medium rounded-full ${
+                recall.reviewed_time
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}
+            >
+              {recall.reviewed_time ? 'Reviewed' : 'Pending'}
+            </span>
+          )}
         </td>
         <td className="px-4 py-3">
           <div className="flex items-center gap-2">
-            {editingId !== recall.id && (
+            {isAdmin && editingId !== recall.id && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
