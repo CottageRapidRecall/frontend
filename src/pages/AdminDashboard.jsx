@@ -22,9 +22,11 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedActionId, setExpandedActionId] = useState(null);
+  const [totalUsers, setTotalUsers] = useState(0);
 
   useEffect(() => {
     fetchRecalls();
+    fetchUsers();
   }, []);
 
   const fetchRecalls = async () => {
@@ -51,6 +53,21 @@ export function AdminDashboard() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const idToken = await getFreshIdToken();
+      if (!idToken) return;
+      const res = await fetch(`${BACKEND_URL}/admin/users`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setTotalUsers(Array.isArray(data.users) ? data.users.length : 0);
+    } catch (err) {
+      // silently fail - users count is not critical
     }
   };
 
@@ -140,7 +157,7 @@ export function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">0</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{totalUsers}</p>
               </div>
               <div className="p-3 bg-purple-100 rounded-full">
                 <Users className="h-6 w-6 text-purple-600" />
@@ -192,8 +209,9 @@ export function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Action Items */}
-      <div className="mb-6">
+      {/* Action Items and Recent Recalls side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Action Items */}
         <Card>
           <CardHeader>
             <CardTitle>Action Items ({actionItems.length} pending)</CardTitle>
@@ -295,11 +313,9 @@ export function AdminDashboard() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-
-      {/* Recent Recalls - full width below */}
-      <Card>
+        {/* Recent Recalls */}
+        <Card>
         <CardHeader>
           <CardTitle>Recent Recalls</CardTitle>
         </CardHeader>
@@ -370,7 +386,8 @@ export function AdminDashboard() {
             </div>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }
