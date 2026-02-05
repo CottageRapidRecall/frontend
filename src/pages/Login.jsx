@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithPopup, fetchSignInMethodsForEmail, signInWithCredential, linkWithCredential } from 'firebase/auth';
 import { auth, googleProvider, microsoftProvider } from '../lib/firebase';
+import { OAuthProvider } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import logo_long from '../assets/rapidrecall_logo_name.svg'
 
@@ -103,7 +104,56 @@ export function Login() {
       
       navigate('/');
     } catch (error) {
-      console.error('Error signing in:', error);
+      // Handle account linking
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        try {
+          // Get the Microsoft credential from the error
+          const pendingCred = OAuthProvider.credentialFromError(error);
+          
+          // Just try to sign in with Google directly
+          const googleResult = await signInWithPopup(auth, googleProvider);
+          
+          // Now link the Microsoft credential to the Google account
+          await linkWithCredential(googleResult.user, pendingCred);
+          
+          // Get the updated user token
+          const idToken = await googleResult.user.getIdToken();
+          
+          // Verify with backend
+          const response = await fetch(`${BACKEND_URL}/auth/verify-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              token: idToken,
+              uid: googleResult.user.uid,
+              email: googleResult.user.email,
+              displayName: googleResult.user.displayName,
+              photoURL: googleResult.user.photoURL,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Backend verification failed');
+          }
+
+          const data = await response.json();
+          
+          localStorage.setItem('idToken', idToken);
+          localStorage.setItem('uid', googleResult.user.uid);
+          localStorage.setItem('userRole', data.role || 'user');
+          
+          navigate('/');
+          return;
+        } catch (linkError) {
+          console.error('Account linking error:', linkError);
+          console.error('Link error code:', linkError.code);
+          console.error('Link error message:', linkError.message);
+          setError(`Failed to link accounts: ${linkError.message}\nPlease allow pop-ups.`);
+          return;
+        } 
+      }
       
       if (error.code === 'auth/popup-closed-by-user') {
         setError('Sign-in popup was closed. Please try again.');
@@ -112,7 +162,7 @@ export function Login() {
       } else if (error.message === 'Backend verification failed') {
         setError('Failed to verify with backend. Please try again.');
       } else {
-        setError('Failed to sign in with Microsoft. Please try again.');
+        setError(`Failed to sign in with Microsoft: ${error.message}`);
       }
     } finally {
       setLoading(false);
