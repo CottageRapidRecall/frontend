@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../lib/firebase';
+import { auth, googleProvider, microsoftProvider } from '../lib/firebase';
 import { useNavigate } from 'react-router-dom';
 import logo_long from '../assets/rapidrecall_logo_name.svg'
 
@@ -67,6 +67,58 @@ export function Login() {
     }
   };
 
+  const handleMicrosoftSignIn = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await signInWithPopup(auth, microsoftProvider);
+      const user = result.user;
+      
+      const idToken = await user.getIdToken();
+      
+      const response = await fetch(`${BACKEND_URL}/auth/verify-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: idToken,
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Backend verification failed');
+      }
+
+      const data = await response.json();
+      
+      localStorage.setItem('idToken', idToken);
+      localStorage.setItem('uid', user.uid);
+      localStorage.setItem('userRole', data.role || 'user');
+      
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing in:', error);
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in popup was closed. Please try again.');
+      } else if (error.code === 'auth/network-request-failed') {
+        setError('Network error. Please check your connection.');
+      } else if (error.message === 'Backend verification failed') {
+        setError('Failed to verify with backend. Please try again.');
+      } else {
+        setError('Failed to sign in with Microsoft. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-300 to-green-200 p-4">
       {/* Main Container - White Rounded Box */}
@@ -118,6 +170,7 @@ export function Login() {
             </button>
 
             <button
+              onClick={handleMicrosoftSignIn}
               disabled={loading}
               className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-3"
             >
