@@ -201,7 +201,7 @@ export function RecallsDatabase({ userRole }) {
     return (
       r.id?.toLowerCase().includes(s) ||
       r.result?.recall_data?.recall_items[0]?.catalog_search?.item_number?.toLowerCase().includes(s) ||
-      r.result?.recall_data?.recall_items[0]?.catalog_search?.description?.toLowerCase().includes(s) ||
+      r.result?.recall_data?.recall_items[0]?.product_description?.toLowerCase().includes(s) ||
       r.result?.recall_data?.recall_items[0]?.manufacturer?.toLowerCase().includes(s) ||
       r.result?.recall_data?.recall_items[0]?.product_name?.toLowerCase().includes(s) ||
       r.result?.recall_data?.recall_items[0]?.product_code?.toLowerCase().includes(s) ||
@@ -329,7 +329,7 @@ export function RecallsDatabase({ userRole }) {
           {recallItem?.catalog_search?.item_number || '-'}
         </td>
         <td className="px-4 py-3">
-          {recallItem?.catalog_search?.description || '-'}
+          {recallItem?.product_description || '-'}
         </td>
         <td className="px-4 py-3">
           {recallItem?.product_code || '-'}
@@ -475,7 +475,7 @@ export function RecallsDatabase({ userRole }) {
               </div>
               <div>
                 <span className="font-semibold text-gray-700">Item Description:</span>
-                <p className="text-gray-600">{recallItem?.catalog_search?.description || '-'}</p>
+                <p className="text-gray-600">{recallItem?.product_description || '-'}</p>
               </div>
               <div>
                 <span className="font-semibold text-gray-700">Product Code:</span>
@@ -658,7 +658,7 @@ export function RecallsDatabase({ userRole }) {
                         <Fragment key={`group-${itemCode}`}>
                           <tr className="bg-gray-100 border-b">
                             <td className="px-4 py-3 font-mono text-sm">{firstItem?.catalog_search?.item_number || '-'}</td>
-                            <td className="px-4 py-3">{firstItem?.catalog_search?.description || '-'}</td>
+                            <td className="px-4 py-3">{firstItem?.product_description || '-'}</td>
                             <td className="px-4 py-3">{itemCode}</td>
                             <td className="px-4 py-3"></td>
                             <td className="px-4 py-3"></td>
