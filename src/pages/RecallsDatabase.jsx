@@ -198,19 +198,15 @@ export function RecallsDatabase({ userRole }) {
 
   const filteredRecalls = recalls.filter((r) => {
     const s = searchTerm.toLowerCase();
+    const recallItem = r.result?.recall_data?.recall_items?.[0];
     return (
       r.id?.toLowerCase().includes(s) ||
-      r.result?.recall_data?.recall_items[0]?.catalog_search?.item_number?.toLowerCase().includes(s) ||
-      r.result?.recall_data?.recall_items[0]?.product_description?.toLowerCase().includes(s) ||
-      r.result?.recall_data?.recall_items[0]?.manufacturer?.toLowerCase().includes(s) ||
-      r.result?.recall_data?.recall_items[0]?.product_name?.toLowerCase().includes(s) ||
-      r.result?.recall_data?.recall_items[0]?.product_code?.toLowerCase().includes(s) ||
-      r.result?.recall_data?.recall_items[0]?.fda_class?.toLowerCase().includes(s)
-      // r.result?.recall_data?.recall_items?.item_number?.toLowerCase().includes(s) ||
-      // r.result?.recall_data?.recall_items?.manufacturer?.toLowerCase().includes(s) ||
-      // r.result?.recall_data?.recall_items?.product_name?.toLowerCase().includes(s) ||
-      // r.result?.recall_data?.recall_items?.product_code?.toLowerCase().includes(s) ||
-      // r.result?.recall_data?.recall_items?.fda_class?.toLowerCase().includes(s)
+      recallItem?.catalog_search?.item_number?.toLowerCase().includes(s) ||
+      recallItem?.product_description?.toLowerCase().includes(s) ||
+      recallItem?.manufacturer?.toLowerCase().includes(s) ||
+      recallItem?.product_name?.toLowerCase().includes(s) ||
+      recallItem?.product_code?.toLowerCase().includes(s) ||
+      recallItem?.fda_class?.toLowerCase().includes(s)
     );
   });
   // console.log("filtered recalls:")
